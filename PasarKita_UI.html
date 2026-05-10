@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PasarKita - Marketplace UMKM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#ee4d2d',
+                        secondary: '#ff7337',
+                        accent: '#2d9ee0',
+                        shopeeBg: '#f5f5f5',
+                        dark: '#1a1a1a'
+                    },
+                    borderRadius: {
+                        'shopee': '2px',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #ee4d2d; border-radius: 10px; }
+        
+        .glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .role-card:hover {
+            transform: translateY(-5px);
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+
+<body class="bg-shopeeBg font-sans text-gray-800 antialiased min-h-screen">
+
+    <!-- Navbar -->
+    <header id="main-nav" class="bg-white shadow-sm sticky top-0 z-40 hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex items-center cursor-pointer text-primary" onclick="goHome()">
+                    <i class="fas fa-shopping-bag text-3xl mr-2"></i>
+                    <span class="font-bold text-2xl tracking-tight">PasarKita</span>
+                </div>
+
+                <!-- Navigation Menu -->
+                <div class="flex items-center space-x-6" id="nav-menu">
+                    <!-- Injected by JS -->
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main id="app-content">
+    </main>
+
+    <!-- Modals & Toasts -->
+    <div id="toast-container" class="fixed bottom-10 right-4 z-50 flex flex-col gap-2"></div>
+
+    <script>
+        window.onload = () => initApp();
+
+        // --- APP STATE ---
+        const state = {
+            user: null, // role, name
+            balance: 5000000,
+            products: [
+                { id: 'P01', name: 'Kripik Tempe Renyah', price: 15000, stock: 100, seller: 'UMKM Mandiri', img: 'https://images.unsplash.com/photo-1599508704512-2f19efd1e35f?w=400', sold: 250, discount: 20, originalPrice: 18750 },
+                { id: 'P02', name: 'Sambal Bawang Pedas', price: 25000, stock: 50, seller: 'Dapur Desa', img: 'https://images.unsplash.com/photo-1559525839-b184a4d698c7?w=400', sold: 180, discount: 0, originalPrice: 25000 },
+                { id: 'P03', name: 'Kaos Batik Solo Premium', price: 85000, stock: 20, seller: 'Batik Lestari', img: 'https://images.unsplash.com/photo-1606760227091-3dd870d97f1d?w=400', sold: 95, discount: 15, originalPrice: 100000 },
+                { id: 'P04', name: 'Madu Hutan Asli 500ml', price: 75000, stock: 35, seller: 'Lebah Lestari', img: 'https://images.unsplash.com/photo-1587049352847-4d4b137a5b9a?w=400', sold: 320, discount: 10, originalPrice: 83000 },
+                { id: 'P05', name: 'Kopi Arabica Gayo 200g', price: 45000, stock: 60, seller: 'Kopi Nusantara', img: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefda?w=400', sold: 410, discount: 25, originalPrice: 60000 },
+                { id: 'P06', name: 'Tas Rajut Handmade', price: 120000, stock: 15, seller: 'Craft Bunda', img: 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=400', sold: 75, discount: 0, originalPrice: 120000 },
+                { id: 'P07', name: 'Gula Aren Organik 1kg', price: 35000, stock: 80, seller: 'Aren Jaya', img: 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400', sold: 560, discount: 30, originalPrice: 50000 },
+                { id: 'P08', name: 'Kerupuk Udang Sidoarjo', price: 28000, stock: 90, seller: 'Udang Mas', img: 'https://images.unsplash.com/photo-1625220194771-7ebdea0b70b9?w=400', sold: 890, discount: 0, originalPrice: 28000 },
+                { id: 'P09', name: 'Sabun Herbal Sereh', price: 18000, stock: 200, seller: 'Herbal Nusantara', img: 'https://images.unsplash.com/photo-1600857544200-b2f666a9a2ec?w=400', sold: 145, discount: 15, originalPrice: 21000 },
+                { id: 'P10', name: 'Dodol Garut Special', price: 22000, stock: 70, seller: 'Oleh-Oleh Garut', img: 'https://images.unsplash.com/photo-1621939514649-280e2ee25f60?w=400', sold: 670, discount: 0, originalPrice: 22000 },
+                { id: 'P11', name: 'Teh Celup Rosella', price: 15000, stock: 150, seller: 'Herbal Nusantara', img: 'https://images.unsplash.com/photo-1597481499750-3bc118b23941?w=400', sold: 230, discount: 20, originalPrice: 18750 },
+                { id: 'P12', name: 'Kain Tenun Etnik NTT', price: 250000, stock: 5, seller: 'Tenun Nusantara', img: 'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=400', sold: 30, discount: 0, originalPrice: 250000 }
+            ],
+            orders: [
+                { id: 'TRX-9921', buyer: 'Budi', total: 40000, status: 'Menunggu Konfirmasi', date: '2024-03-28' },
+                { id: 'TRX-9922', buyer: 'Siti', total: 85000, status: 'Dikirim', date: '2024-03-27' }
+            ],
+            users: [
+                { id: 1, name: 'Budi (Consumen)', role: 'consumen', status: 'active' },
+                { id: 2, name: 'Siti (Consumen)', role: 'consumen', status: 'active' },
+                { id: 3, name: 'UMKM Mandiri', role: 'pelapak', status: 'active' },
+                { id: 4, name: 'Operator Juna', role: 'operator', status: 'active' }
+            ],
+            cart: []
+        };
+
+        // --- AUTH LOGIC ---
+        function initApp() {
+            navigate('landing');
+        }
+
+        function login(role) {
+            state.user = { role: role, name: role.charAt(0).toUpperCase() + role.slice(1) };
+            document.getElementById('main-nav').classList.remove('hidden');
+            renderNav();
+            navigate(getDefaultView(role));
+            showToast(`Login berhasil sebagai ${state.user.name}`);
+        }
+
+        function logout() {
+            state.user = null;
+            document.getElementById('main-nav').classList.add('hidden');
+            navigate('landing');
+        }
+
+        function goHome() {
+            if (!state.user) {
+                navigate('landing');
+                return;
+            }
+            navigate(getDefaultView(state.user.role));
+        }
+
+        function getDefaultView(role) {
+            switch(role) {
+                case 'consumen': return 'katalog';
+                case 'pelapak': return 'inventory';
+                case 'operator': return 'transactions';
+                case 'admin': return 'dashboard';
+            }
+        }
+
+        // --- NAVIGATION ---
+        function navigate(view) {
+            const content = document.getElementById('app-content');
+            content.className = "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 fade-in";
+            
+            // Hide nav for landing and login
+            if (view === 'landing' || view === 'login') {
+                document.getElementById('main-nav').classList.add('hidden');
+            }
+
+            switch(view) {
+                case 'landing': content.innerHTML = renderLanding(); break;
+                case 'login': content.innerHTML = renderLogin(); break;
+                
+                // Consumen Views
+                case 'katalog': content.innerHTML = renderKatalog(); break;
+                case 'orders': content.innerHTML = renderMyOrders(); break;
+                
+                // Pelapak Views
+                case 'inventory': content.innerHTML = renderInventory(); break;
+                
+                // Operator Views
+                case 'transactions': content.innerHTML = renderTransactionQueue(); break;
+                
+                // Admin Views
+                case 'dashboard': content.innerHTML = renderAdminDashboard(); break;
+                case 'users': content.innerHTML = renderUserManagement(); break;
+            }
+        }
+
+        function renderNav() {
+            const nav = document.getElementById('nav-menu');
+            if (!state.user) return;
+            const role = state.user.role;
+            let html = '';
+
+            if (role === 'consumen') {
+                html = `
+                    <button onclick="navigate('katalog')" class="text-gray-600 hover:text-primary font-medium">Katalog</button>
+                    <button onclick="navigate('orders')" class="text-gray-600 hover:text-primary font-medium">Pesanan Saya</button>
+                    <div class="h-6 w-px bg-gray-200"></div>
+                    <div class="flex items-center text-primary font-bold">
+                        <i class="fas fa-wallet mr-2"></i> Rp ${state.balance.toLocaleString()}
+                    </div>
+                `;
+            } else if (role === 'pelapak') {
+                html = `
+                    <button onclick="navigate('inventory')" class="text-gray-600 hover:text-primary font-medium">Inventori</button>
+                    <button class="text-gray-600 hover:text-primary font-medium">Laporan Penjualan</button>
+                `;
+            } else if (role === 'operator') {
+                html = `
+                    <button onclick="navigate('transactions')" class="text-gray-600 hover:text-primary font-medium">Antrean Transaksi</button>
+                    <button class="text-gray-600 hover:text-primary font-medium">Log Sistem</button>
+                `;
+            } else if (role === 'admin') {
+                html = `
+                    <button onclick="navigate('dashboard')" class="text-gray-600 hover:text-primary font-medium">Statistik</button>
+                    <button onclick="navigate('users')" class="text-gray-600 hover:text-primary font-medium">Manajemen User</button>
+                `;
+            }
+
+            html += `
+                <div class="flex items-center ml-4">
+                    <span class="bg-gray-100 px-3 py-1 rounded-full text-xs font-bold text-gray-600 uppercase mr-3">${state.user.role}</span>
+                    <button onclick="logout()" class="text-red-500 hover:text-red-700"><i class="fas fa-sign-out-alt"></i></button>
+                </div>
+            `;
+            nav.innerHTML = html;
+        }
+
+        // --- VIEW RENDERERS ---
+
+        // 0. LANDING PAGE
+        function renderLanding() {
+            return `
+                <div class="fade-in -mt-8">
+                    <!-- Top Search Bar (Tokopedia Style) -->
+                    <div class="bg-white sticky top-0 z-50 py-3 shadow-sm border-b border-gray-100 hidden lg:block">
+                        <div class="max-w-7xl mx-auto px-4 flex items-center gap-6">
+                            <div class="flex items-center text-primary font-bold text-2xl shrink-0 cursor-pointer" onclick="navigate('landing')">
+                                <i class="fas fa-shopping-bag mr-2"></i> PasarKita
+                            </div>
+                            <div class="relative flex-grow">
+                                <input type="text" placeholder="Cari kripik tempe, kain batik, atau sambal..." class="w-full border border-gray-200 rounded-lg py-2 px-10 focus:border-primary outline-none text-sm transition-all">
+                                <i class="fas fa-search absolute left-3 top-3 text-gray-400 text-sm"></i>
+                            </div>
+                            <div class="flex items-center gap-4 shrink-0">
+                                <button onclick="navigate('login')" class="px-4 py-2 text-sm font-bold border border-primary text-primary rounded-lg hover:bg-orange-50 transition">Masuk</button>
+                                <button onclick="navigate('login')" class="px-4 py-2 text-sm font-bold bg-primary text-white rounded-lg hover:bg-orange-600 shadow-md">Daftar</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Main Promo Banner -->
+                    <div class="py-6">
+                        <div class="relative rounded-2xl overflow-hidden shadow-xl h-[300px] lg:h-[400px]">
+                            <img src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1200" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent flex items-center p-12">
+                                <div class="max-w-md text-white">
+                                    <span class="bg-yellow-400 text-black px-3 py-1 rounded-full text-xs font-bold uppercase mb-4 inline-block">Promo Ramadhan</span>
+                                    <h2 class="text-4xl lg:text-5xl font-extrabold mb-4">Diskon UMKM Hingga 70%</h2>
+                                    <p class="text-lg mb-6 opacity-90">Dukung produk lokal, nikmati gratis ongkir ke seluruh Indonesia.</p>
+                                    <button onclick="navigate('login')" class="bg-white text-primary px-8 py-3 rounded-xl font-bold hover:scale-105 transition shadow-lg">Cek Sekarang</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Categories Quick Links -->
+                    <div class="py-8 grid grid-cols-4 md:grid-cols-8 gap-4 text-center">
+                        ${['Makanan', 'Minuman', 'Pakaian', 'Kerajinan', 'Pertanian', 'Otomotif', 'Elektronik', 'Kesehatan'].map((cat, i) => `
+                            <div class="group cursor-pointer">
+                                <div class="w-14 h-14 bg-white rounded-2xl shadow-sm border border-gray-100 flex items-center justify-center mx-auto mb-2 group-hover:shadow-md group-hover:border-primary transition-all">
+                                    <i class="fas ${['fa-utensils', 'fa-coffee', 'fa-shirt', 'fa-palette', 'fa-leaf', 'fa-car', 'fa-laptop', 'fa-heart-pulse'][i]} text-gray-600 group-hover:text-primary"></i>
+                                </div>
+                                <span class="text-xs font-medium text-gray-600 group-hover:text-primary">${cat}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <!-- Flash Sale Section -->
+                    <div class="py-8 bg-white rounded-2xl p-6 shadow-sm border border-gray-50 mb-8">
+                        <div class="flex items-center justify-between mb-6">
+                            <div class="flex items-center gap-4">
+                                <h3 class="text-xl font-extrabold flex items-center gap-2">
+                                    <i class="fas fa-bolt text-yellow-400"></i> Flash Sale
+                                </h3>
+                                <div class="flex items-center gap-2">
+                                    <span class="bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">02</span> :
+                                    <span class="bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">14</span> :
+                                    <span class="bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">55</span>
+                                </div>
+                            </div>
+                            <a href="#" class="text-primary font-bold text-sm hover:underline">Lihat Semua</a>
+                        </div>
+                        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                            ${state.products.slice(0, 6).map(p => `
+                                <div class="group cursor-pointer">
+                                    <div class="relative rounded-xl overflow-hidden mb-2">
+                                        <img src="${p.img}" class="w-full h-40 object-cover group-hover:scale-105 transition-all duration-500">
+                                        <div class="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded text-[10px] font-bold">-${p.discount || 20}%</div>
+                                    </div>
+                                    <h4 class="text-sm font-bold text-gray-800 line-clamp-1 mb-1">${p.name}</h4>
+                                    <p class="text-primary font-extrabold text-sm">Rp ${(p.price * 0.8).toLocaleString()}</p>
+                                    <div class="mt-2 w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                                        <div class="bg-primary h-full" style="width: ${Math.random() * 80 + 20}%"></div>
+                                    </div>
+                                    <p class="text-[10px] text-gray-400 mt-1">Segera Habis</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Recommendation Section -->
+                    <div class="py-4">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-xl font-extrabold">Inspirasi Belanja Untukmu</h3>
+                        </div>
+                        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                            ${state.products.map(p => `
+                                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition-all hover:-translate-y-1 cursor-pointer group">
+                                    <div class="h-40 overflow-hidden relative">
+                                        <img src="${p.img}" class="w-full h-full object-cover">
+                                        <div class="absolute bottom-2 left-2 bg-white/90 backdrop-blur px-2 py-1 rounded text-[10px] font-bold text-gray-600">
+                                            <i class="fas fa-star text-yellow-400 mr-1"></i> 4.8 | ${p.sold || '100+'} terjual
+                                        </div>
+                                    </div>
+                                    <div class="p-3">
+                                        <h4 class="text-xs text-gray-800 font-medium line-clamp-2 h-8 mb-2 group-hover:text-primary transition-colors">${p.name}</h4>
+                                        <p class="text-primary font-bold text-base mb-1">Rp ${p.price.toLocaleString()}</p>
+                                        <div class="flex items-center gap-1 mb-2">
+                                            <span class="text-[10px] bg-green-100 text-green-600 px-1 rounded font-bold">Grosir</span>
+                                            <span class="text-[10px] bg-blue-100 text-blue-600 px-1 rounded font-bold">UMKM</span>
+                                        </div>
+                                        <div class="flex items-center text-[10px] text-gray-400">
+                                            <i class="fas fa-location-dot mr-1 text-gray-300"></i> ${['Bandung', 'Jakarta', 'Solo', 'Jogja'][Math.floor(Math.random() * 4)]}
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Landing Footer -->
+                    <footer class="mt-16 py-12 border-t border-gray-200">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+                            <div class="col-span-1 md:col-span-1">
+                                <div class="text-primary font-bold text-2xl mb-4"><i class="fas fa-shopping-bag mr-2"></i> PasarKita</div>
+                                <p class="text-gray-500 text-sm leading-relaxed">Ekosistem digital pertama yang mengintegrasikan Marketplace, Perbankan, dan Logistik untuk kemajuan UMKM Indonesia.</p>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-800 mb-4 uppercase text-xs tracking-wider">Layanan</h4>
+                                <ul class="text-gray-500 text-sm space-y-2">
+                                    <li class="hover:text-primary cursor-pointer transition">SmartBank</li>
+                                    <li class="hover:text-primary cursor-pointer transition">LogistiKita</li>
+                                    <li class="hover:text-primary cursor-pointer transition">PasarKita Business</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-800 mb-4 uppercase text-xs tracking-wider">Bantuan</h4>
+                                <ul class="text-gray-500 text-sm space-y-2">
+                                    <li class="hover:text-primary cursor-pointer transition">Pusat Resolusi</li>
+                                    <li class="hover:text-primary cursor-pointer transition">Syarat & Ketentuan</li>
+                                    <li class="hover:text-primary cursor-pointer transition">Kebijakan Privasi</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-800 mb-4 uppercase text-xs tracking-wider">Ikuti Kami</h4>
+                                <div class="flex gap-4 text-gray-400">
+                                    <i class="fab fa-instagram hover:text-primary transition cursor-pointer text-xl"></i>
+                                    <i class="fab fa-facebook hover:text-primary transition cursor-pointer text-xl"></i>
+                                    <i class="fab fa-twitter hover:text-primary transition cursor-pointer text-xl"></i>
+                                    <i class="fab fa-youtube hover:text-primary transition cursor-pointer text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-center text-gray-400 text-xs">© 2024 PasarKita. Bagian dari Ekosistem RPL Final Assignment.</p>
+                    </footer>
+                </div>
+            `;
+        }
+
+        // 0.1 LOGIN PAGE
+        function renderLogin() {
+            return `
+                <div class="min-h-[80vh] flex flex-col items-center justify-center fade-in">
+                    <div class="text-center mb-12">
+                        <h1 class="text-4xl font-extrabold text-gray-900 mb-4">Masuk ke <span class="text-primary">PasarKita</span></h1>
+                        <p class="text-gray-500 text-lg">Pilih peran Anda untuk melanjutkan</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full max-w-6xl">
+                        <!-- Consumen -->
+                        <div onclick="login('consumen')" class="role-card bg-white p-8 rounded-xl shadow-lg border border-gray-100 cursor-pointer hover:shadow-2xl transition-all text-center">
+                            <div class="w-20 h-20 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <i class="fas fa-user-tag text-3xl"></i>
+                            </div>
+                            <h3 class="text-xl font-bold mb-2">Consumen</h3>
+                            <p class="text-gray-500 text-sm">Saya ingin berbelanja produk.</p>
+                        </div>
+
+                        <!-- Pelapak -->
+                        <div onclick="login('pelapak')" class="role-card bg-white p-8 rounded-xl shadow-lg border border-gray-100 cursor-pointer hover:shadow-2xl transition-all text-center">
+                            <div class="w-20 h-20 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <i class="fas fa-store text-3xl"></i>
+                            </div>
+                            <h3 class="text-xl font-bold mb-2">Pelapak</h3>
+                            <p class="text-gray-500 text-sm">Saya ingin berjualan produk.</p>
+                        </div>
+
+                        <!-- Admin Operator -->
+                        <div onclick="login('operator')" class="role-card bg-white p-8 rounded-xl shadow-lg border border-gray-100 cursor-pointer hover:shadow-2xl transition-all text-center">
+                            <div class="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <i class="fas fa-tasks text-3xl"></i>
+                            </div>
+                            <h3 class="text-xl font-bold mb-2">Operator</h3>
+                            <p class="text-gray-500 text-sm">Saya mengelola operasional.</p>
+                        </div>
+
+                        <!-- Admin -->
+                        <div onclick="login('admin')" class="role-card bg-white p-8 rounded-xl shadow-lg border border-gray-100 cursor-pointer hover:shadow-2xl transition-all text-center">
+                            <div class="w-20 h-20 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <i class="fas fa-user-shield text-3xl"></i>
+                            </div>
+                            <h3 class="text-xl font-bold mb-2">Admin</h3>
+                            <p class="text-gray-500 text-sm">Saya mengelola sistem.</p>
+                        </div>
+                    </div>
+                    <button onclick="navigate('landing')" class="mt-12 text-gray-500 hover:text-primary font-medium flex items-center gap-2">
+                        <i class="fas fa-arrow-left"></i> Kembali ke Beranda
+                    </button>
+                </div>
+            `;
+        }
+
+        // 1. CONSUMEN: Katalog
+        function renderKatalog() {
+            return `
+                <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    ${state.products.map(p => `
+                        <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100 hover:shadow-md transition">
+                            <img src="${p.img}" class="w-full h-48 object-cover">
+                            <div class="p-4">
+                                <h3 class="font-bold text-gray-900 mb-1">${p.name}</h3>
+                                <p class="text-xs text-gray-500 mb-3"><i class="fas fa-store mr-1 text-primary"></i> ${p.seller}</p>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-primary font-bold">Rp ${p.price.toLocaleString()}</span>
+                                    <button onclick="showToast('Ditambahkan ke keranjang')" class="bg-primary text-white p-2 rounded-full hover:bg-orange-600">
+                                        <i class="fas fa-cart-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function renderMyOrders() {
+            return `
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+                        <h2 class="text-xl font-bold">Riwayat Pesanan</h2>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50 text-gray-500 text-xs font-bold uppercase">
+                                <tr>
+                                    <th class="px-6 py-4">ID Pesanan</th>
+                                    <th class="px-6 py-4">Tanggal</th>
+                                    <th class="px-6 py-4">Total</th>
+                                    <th class="px-6 py-4">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                ${state.orders.map(o => `
+                                    <tr>
+                                        <td class="px-6 py-4 font-mono text-sm">${o.id}</td>
+                                        <td class="px-6 py-4 text-sm">${o.date}</td>
+                                        <td class="px-6 py-4 text-sm font-bold">Rp ${o.total.toLocaleString()}</td>
+                                        <td class="px-6 py-4">
+                                            <span class="px-2 py-1 rounded-full text-[10px] font-bold uppercase ${o.status === 'Dikirim' ? 'bg-blue-100 text-blue-600' : 'bg-orange-100 text-orange-600'}">
+                                                ${o.status}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 2. PELAPAK: Inventory
+        function renderInventory() {
+            return `
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold">Manajemen Produk</h2>
+                    <button class="bg-primary text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2">
+                        <i class="fas fa-plus"></i> Tambah Produk
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 gap-4">
+                    ${state.products.map(p => `
+                        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
+                            <img src="${p.img}" class="w-20 h-20 rounded-lg object-cover">
+                            <div class="flex-grow">
+                                <h3 class="font-bold text-lg">${p.name}</h3>
+                                <p class="text-primary font-bold">Rp ${p.price.toLocaleString()}</p>
+                                <p class="text-sm text-gray-500">Stok: ${p.stock}</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg"><i class="fas fa-edit"></i></button>
+                                <button class="p-2 text-red-500 hover:bg-red-50 rounded-lg"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // 3. OPERATOR: Transaction Queue
+        function renderTransactionQueue() {
+            return `
+                <div class="mb-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-orange-500">
+                        <p class="text-gray-500 text-sm font-bold uppercase mb-1">Perlu Konfirmasi</p>
+                        <h4 class="text-3xl font-extrabold text-gray-900">12</h4>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-500">
+                        <p class="text-gray-500 text-sm font-bold uppercase mb-1">Sedang Dikemas</p>
+                        <h4 class="text-3xl font-extrabold text-gray-900">45</h4>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500">
+                        <p class="text-gray-500 text-sm font-bold uppercase mb-1">Selesai Hari Ini</p>
+                        <h4 class="text-3xl font-extrabold text-gray-900">128</h4>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="p-6 border-b border-gray-100"><h2 class="text-xl font-bold">Antrean Transaksi Baru</h2></div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50 text-gray-500 text-xs font-bold uppercase">
+                                <tr>
+                                    <th class="px-6 py-4">ID</th>
+                                    <th class="px-6 py-4">Pembeli</th>
+                                    <th class="px-6 py-4">Total</th>
+                                    <th class="px-6 py-4">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                ${state.orders.filter(o => o.status === 'Menunggu Konfirmasi').map(o => `
+                                    <tr>
+                                        <td class="px-6 py-4 font-mono text-sm">${o.id}</td>
+                                        <td class="px-6 py-4 text-sm font-bold">${o.buyer}</td>
+                                        <td class="px-6 py-4 text-sm">Rp ${o.total.toLocaleString()}</td>
+                                        <td class="px-6 py-4 flex gap-2">
+                                            <button onclick="showToast('Transaksi Dikonfirmasi')" class="bg-green-500 text-white px-3 py-1 rounded text-xs font-bold uppercase">Konfirmasi</button>
+                                            <button class="bg-gray-100 text-gray-500 px-3 py-1 rounded text-xs font-bold uppercase">Detail</button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 4. ADMIN: Dashboard & User Mgmt
+        function renderAdminDashboard() {
+            return `
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 bg-green-100 text-green-600 rounded-lg flex items-center justify-center"><i class="fas fa-money-bill-wave text-xl"></i></div>
+                            <span class="text-green-500 text-xs font-bold">+12%</span>
+                        </div>
+                        <p class="text-gray-500 text-xs font-bold uppercase mb-1">Total Pendapatan (Fee 2%)</p>
+                        <h4 class="text-2xl font-extrabold">Rp 12.450.000</h4>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center"><i class="fas fa-users text-xl"></i></div>
+                            <span class="text-blue-500 text-xs font-bold">+5%</span>
+                        </div>
+                        <p class="text-gray-500 text-xs font-bold uppercase mb-1">Total Pengguna</p>
+                        <h4 class="text-2xl font-extrabold">${state.users.length}</h4>
+                    </div>
+                </div>
+                
+                <div class="bg-dark text-white p-8 rounded-2xl shadow-xl">
+                    <h3 class="text-xl font-bold mb-4">Health Monitoring Sistem</h3>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-400">SmartBank API Status</span>
+                            <span class="flex items-center gap-2 text-green-400 text-sm font-bold"><div class="w-2 h-2 bg-green-400 rounded-full"></div> Online</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-400">LogistiKita API Status</span>
+                            <span class="flex items-center gap-2 text-green-400 text-sm font-bold"><div class="w-2 h-2 bg-green-400 rounded-full"></div> Online</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderUserManagement() {
+            return `
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+                        <h2 class="text-xl font-bold">Manajemen Pengguna</h2>
+                        <input type="text" placeholder="Cari user..." class="border border-gray-200 px-4 py-2 rounded-lg text-sm outline-none focus:border-primary">
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50 text-gray-500 text-xs font-bold uppercase">
+                                <tr>
+                                    <th class="px-6 py-4">Nama</th>
+                                    <th class="px-6 py-4">Role</th>
+                                    <th class="px-6 py-4">Status</th>
+                                    <th class="px-6 py-4">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                ${state.users.map(u => `
+                                    <tr>
+                                        <td class="px-6 py-4 text-sm font-medium">${u.name}</td>
+                                        <td class="px-6 py-4"><span class="px-2 py-1 rounded text-[10px] font-bold uppercase bg-gray-100 text-gray-600">${u.role}</span></td>
+                                        <td class="px-6 py-4"><span class="text-green-500 text-xs font-bold"><i class="fas fa-check-circle mr-1"></i> Active</span></td>
+                                        <td class="px-6 py-4">
+                                            <button class="text-red-500 hover:underline text-sm font-bold">Suspen</button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- UI UTILS ---
+        function showToast(message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = "bg-dark text-white px-6 py-3 rounded-xl shadow-2xl fade-in flex items-center gap-3 text-sm font-medium border border-gray-700";
+            toast.innerHTML = `<i class="fas fa-check-circle text-green-400"></i> ${message}`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+    </script>
+</body>
+</html>

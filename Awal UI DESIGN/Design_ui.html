@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PasarKita - Marketplace UMKM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#ee4d2d',
+                        secondary: '#ff7337',
+                        shopeeBg: '#f5f5f5'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar for better UI */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #c5c5c5;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-shopeeBg font-sans text-gray-800 antialiased min-h-screen">
+
+    <!-- Header Shopee Style -->
+    <header id="main-nav"
+        class="bg-gradient-to-b from-primary to-secondary shadow-sm sticky top-0 z-40 hidden transition-all">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center py-4 h-auto md:h-20 gap-4">
+
+                <!-- Branding -->
+                <div class="flex items-center cursor-pointer text-white"
+                    onclick="navigate(state.role === 'client' ? 'katalog' : 'admin')">
+                    <i class="fas fa-shopping-bag text-3xl mr-2"></i>
+                    <span class="font-bold text-3xl tracking-tight">PasarKita</span>
+                </div>
+
+                <!-- Center Search Logic (Visible mostly for client) -->
+                <div class="flex-grow flex justify-center w-full md:w-auto" id="nav-search-container">
+                    <div class="relative w-full max-w-2xl flex">
+                        <input type="text" placeholder="Cari di PasarKita..."
+                            class="w-full text-sm py-2 px-4 rounded-sm border-none focus:outline-none focus:ring-2 focus:ring-orange-300">
+                        <button
+                            class="bg-primary text-white border border-white hover:bg-white hover:text-primary transition-colors absolute right-1 top-1 bottom-1 px-4 rounded-sm">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right Menu -->
+                <div class="flex items-center space-x-6 text-white text-sm font-medium" id="nav-menu">
+                    <!-- Injected by JS -->
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6" id="app-content">
+        <!-- Content injected by JS -->
+    </main>
+
+    <!-- Modal Notification/Process -->
+    <div id="process-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+        <div class="bg-white rounded-sm p-8 max-w-md w-full shadow-2xl transform transition-all text-center">
+            <div id="modal-icon" class="text-4xl text-primary mb-4">
+                <i class="fas fa-circle-notch fa-spin"></i>
+            </div>
+            <h3 id="modal-title" class="text-xl font-bold text-gray-900 mb-2">Memproses...</h3>
+            <p id="modal-desc" class="text-gray-600">Mohon tunggu sebentar.</p>
+            <div id="modal-log"
+                class="mt-4 text-left text-xs font-mono bg-gray-50 p-3 border rounded text-gray-500 h-24 overflow-y-auto hidden">
+            </div>
+            <button id="modal-close-btn" onclick="closeModal()"
+                class="mt-6 bg-primary text-white px-8 py-2 rounded-sm shadow hover:bg-orange-600 transition hidden w-full uppercase font-bold text-sm">OK</button>
+        </div>
+    </div>
+
+    <!-- Product Form Modal (Manajemen Produk) -->
+    <div id="product-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+        <div class="bg-white rounded-sm p-6 max-w-md w-full shadow-2xl transform transition-all text-left">
+            <h3 id="product-modal-title" class="text-xl font-bold text-gray-900 mb-4">Tambah Produk</h3>
+            <div class="space-y-4">
+                <input type="hidden" id="product-id">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Nama Produk</label>
+                    <input type="text" id="product-name"
+                        class="w-full mt-1 border border-gray-300 rounded-sm p-2 focus:ring-primary focus:border-primary outline-none text-sm">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Harga (Rp)</label>
+                        <input type="number" id="product-price"
+                            class="w-full mt-1 border border-gray-300 rounded-sm p-2 focus:ring-primary focus:border-primary outline-none text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Stok</label>
+                        <input type="number" id="product-stock"
+                            class="w-full mt-1 border border-gray-300 rounded-sm p-2 focus:ring-primary focus:border-primary outline-none text-sm">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">URL Gambar (Opsional)</label>
+                    <input type="text" id="product-img" placeholder="https://..."
+                        class="w-full mt-1 border border-gray-300 rounded-sm p-2 focus:ring-primary focus:border-primary outline-none text-sm">
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end gap-3 text-sm">
+                <button onclick="hideProductForm()"
+                    class="px-6 py-2 border border-gray-300 text-gray-700 rounded-sm hover:bg-gray-50 transition">Batal</button>
+                <button onclick="saveProduct()"
+                    class="px-6 py-2 bg-primary text-white rounded-sm hover:bg-orange-600 transition">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Toast Notification -->
+    <div id="toast-container" class="fixed bottom-10 right-4 z-50 flex flex-col gap-2"></div>
+
+    <script>
+        // --- DATA STATE (Simulasi Database) ---
+        const state = {
+            currentView: 'login',
+            role: null,
+            userBalance: 1500000, // Saldo tabungan awal (SmartBank)
+            products: [
+                { id: 'P001', name: 'Kripik Singkong Balado Asli Padang', price: 15000, stock: 50, seller: 'UMKM Berkah', img: 'https://images.unsplash.com/photo-1599508704512-2f19efd1e35f?auto=format&fit=crop&w=300&q=80' },
+                { id: 'P002', name: 'Kopi Arabica Gayo 200g Premium Roasting', price: 45000, stock: 20, seller: 'Kopi Nusantara', img: 'https://images.unsplash.com/photo-1559525839-b184a4d698c7?auto=format&fit=crop&w=300&q=80' },
+                { id: 'P003', name: 'Kain Tenun Etnik Nusantara Kualitas Export', price: 150000, stock: 5, seller: 'Griya Tenun', img: 'https://images.unsplash.com/photo-1606760227091-3dd870d97f1d?auto=format&fit=crop&w=300&q=80' },
+                { id: 'P004', name: 'Madu Hutan Asli Liar 500ml', price: 75000, stock: 15, seller: 'Lebah Lestari', img: 'https://images.unsplash.com/photo-1587049352847-4d4b137a5b9a?auto=format&fit=crop&w=300&q=80' }
+            ],
+            cart: [],
+            orders: [],
+            // Aturan Keuangan
+            rules: {
+                feeMarketplace: 0.02, // 2%
+                feeLogistikFlat: 5000
+            }
+        };
+
+        // --- UTILS ---
+        const formatRupiah = (number) => {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);
+        };
+
+        const generateId = () => 'ORD' + Math.random().toString(36).substr(2, 9).toUpperCase();
+
+        const showToast = (message, type = 'success') => {
+            const toast = document.createElement('div');
+            const color = type === 'success' ? 'bg-black opacity-80' : 'bg-red-500 opacity-90';
+            toast.className = `${color} text-white px-4 py-3 rounded-md shadow-lg flex items-center gap-2 fade-in text-sm max-w-sm justify-center`;
+            toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check' : 'fa-exclamation-circle'}"></i> <span>${message}</span>`;
+            document.getElementById('toast-container').appendChild(toast);
+            setTimeout(() => { toast.remove(); }, 2500);
+        };
+
+        // --- NAVIGATION & RENDERING ---
+        function login(role) {
+            state.role = role;
+            document.getElementById('main-nav').classList.remove('hidden');
+
+            const menu = document.getElementById('nav-menu');
+            const searchContainer = document.getElementById('nav-search-container');
+
+            if (role === 'client') {
+                searchContainer.style.display = 'flex';
+                menu.innerHTML = `
+                    <button onclick="navigate('keranjang')" class="relative hover:text-orange-200 transition text-2xl mx-2" id="nav-keranjang">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span id="cart-badge" class="absolute -top-1 -right-2 bg-white text-primary text-xs rounded-full border border-primary h-4 w-4 flex items-center justify-center font-bold hidden">0</span>
+                    </button>
+                    <button onclick="navigate('pesanan')" class="hover:text-orange-200 transition font-medium" id="nav-pesanan">Pesanan Saya</button>
+                    <div class="h-4 border-l border-white/50 hidden md:block"></div>
+                    <div class="flex items-center gap-2 font-bold cursor-pointer hover:text-orange-200" title="Saldo SmartBank">
+                        <i class="fas fa-wallet text-lg"></i>
+                        <span>${formatRupiah(state.userBalance)}</span>
+                    </div>
+                    <button onclick="logout()" class="hover:text-red-200 transition" title="Logout"><i class="fas fa-sign-out-alt"></i></button>
+                `;
+                navigate('katalog');
+            } else {
+                searchContainer.style.display = 'none'; // Sembunyikan search bar untuk admin
+                menu.innerHTML = `
+                    <span class="font-bold border-r pr-4 border-white/30 hidden md:block">Seller Centre</span>
+                    <button onclick="navigate('seller')" class="hover:text-orange-200 transition font-medium" id="nav-seller">Produk Saya</button>
+                    <button onclick="logout()" class="hover:text-red-200 transition ml-4"><i class="fas fa-sign-out-alt"></i> Logout</button>
+                `;
+                navigate('seller');
+            }
+        }
+
+        function logout() {
+            state.role = null;
+            state.cart = []; // Reset keranjang
+            document.getElementById('main-nav').classList.add('hidden');
+            navigate('login');
+        }
+
+        function navigate(view) {
+            state.currentView = view;
+            window.scrollTo(0, 0);
+            render();
+
+            // Re-bind active styling if needed, though in Shopee header items remain static text mostly
+        }
+
+        function render() {
+            const content = document.getElementById('app-content');
+            content.innerHTML = ''; // clear
+
+            if (state.role === 'client') updateCartBadge();
+
+            switch (state.currentView) {
+                case 'login': content.innerHTML = renderLogin(); break;
+                case 'katalog': content.innerHTML = renderKatalog(); break;
+                case 'keranjang': content.innerHTML = renderKeranjang(); break;
+                case 'pesanan': content.innerHTML = renderPesanan(); break;
+                case 'seller': content.innerHTML = renderSeller(); break;
+            }
+        }
+
+        // --- VIEWS ---
+
+        // 0. Login View
+        function renderLogin() {
+            return `
+                <div class="min-h-[80vh] flex items-center justify-center fade-in">
+                    <div class="bg-white p-10 rounded-sm shadow-md w-full max-w-md border border-gray-100">
+                        <div class="text-center mb-10 text-primary">
+                            <i class="fas fa-shopping-bag text-6xl mb-4"></i>
+                            <h2 class="text-3xl font-bold tracking-tight">PasarKita</h2>
+                            <p class="text-gray-500 text-sm mt-2">Log in untuk mulai berbelanja</p>
+                        </div>
+                        <div class="space-y-4">
+                            <button onclick="login('client')" class="w-full bg-primary text-white font-bold py-3 px-4 rounded-sm hover:bg-orange-600 transition shadow-sm uppercase tracking-wide text-sm">
+                                Login Mahasiswa (Pembeli)
+                            </button>
+                            <div class="relative flex py-2 items-center">
+                                <div class="flex-grow border-t border-gray-200"></div>
+                                <span class="flex-shrink-0 mx-4 text-gray-400 text-xs">ATAU</span>
+                                <div class="flex-grow border-t border-gray-200"></div>
+                            </div>
+                            <button onclick="login('admin')" class="w-full bg-white border border-gray-300 text-gray-700 font-bold py-3 px-4 rounded-sm hover:bg-gray-50 transition shadow-sm uppercase tracking-wide text-sm">
+                                Login UMKM (Penjual)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+
+        // 1. Katalog / Browse Produk
+        function renderKatalog() {
+            let html = `
+                <div class="mb-4 fade-in">
+                    <div class="bg-white rounded-sm shadow-sm border border-gray-200 p-4 mb-4">
+                        <h2 class="text-md font-bold text-gray-800 uppercase border-b border-gray-100 pb-2 mb-4">Rekomendasi Produk UMKM</h2>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+            `;
+
+            state.products.forEach(p => {
+                html += `
+                    <div class="bg-white border border-transparent hover:border-primary hover:shadow-lg transition-all duration-200 group cursor-pointer relative flex flex-col">
+                        <div class="h-44 bg-gray-50 overflow-hidden relative border border-gray-100">
+                            <img src="${p.img}" alt="${p.name}" class="w-full h-full object-cover group-hover:opacity-90">
+                            <!-- Overlay Terjual / Stok -->
+                            <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-30 p-1 flex justify-center">
+                                <span class="text-white text-[10px] font-medium">Stok: ${p.stock}</span>
+                            </div>
+                        </div>
+                        <div class="p-2 flex flex-col flex-grow bg-white border-l border-r border-b border-gray-100">
+                            <h3 class="text-xs text-gray-800 line-clamp-2 leading-snug h-8 mb-2">${p.name}</h3>
+                            <p class="text-primary font-medium text-lg mt-auto">${formatRupiah(p.price)}</p>
+                            
+                            <div class="flex justify-between items-end mt-2">
+                                <span class="text-[10px] text-gray-400"><i class="fas fa-check-circle text-green-500 mr-1"></i>${p.seller}</span>
+                                <button onclick="addToCart('${p.id}'); event.stopPropagation();" class="text-primary hover:text-white hover:bg-primary border border-primary w-6 h-6 rounded-full flex items-center justify-center transition-colors">
+                                    <i class="fas fa-cart-plus text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `
+                        </div>
+                    </div>
+                </div>
+            `;
+            return html;
+        }
+
+        // 2. Keranjang & Checkout
+        function renderKeranjang() {
+            if (state.cart.length === 0) {
+                return `
+                    <div class="bg-white min-h-[50vh] flex flex-col items-center justify-center fade-in rounded-sm border border-gray-200 shadow-sm">
+                        <img src="https://deo.shopeemobile.com/shopee/shopee-pcmall-live-sg/cart/9bdd8040b334d31946f49e36beaf32db.png" class="w-32 opacity-80 mb-4" alt="Empty Cart">
+                        <h2 class="text-lg font-bold text-gray-700 mb-4">Keranjang belanja Anda kosong</h2>
+                        <button onclick="navigate('katalog')" class="bg-primary hover:bg-orange-600 text-white px-10 py-2 rounded-sm font-medium uppercase text-sm transition">Belanja Sekarang</button>
+                    </div>
+                `;
+            }
+
+            let subtotal = 0;
+            let cartHtml = `
+                <div class="flex flex-col lg:flex-row gap-4 fade-in">
+                    <!-- List Item -->
+                    <div class="lg:w-3/4">
+                        <div class="bg-white rounded-sm shadow-sm border border-gray-200 overflow-hidden mb-4">
+                            <!-- Table Header -->
+                            <div class="grid grid-cols-12 gap-4 p-4 text-sm text-gray-500 border-b border-gray-100 bg-gray-50 uppercase font-medium">
+                                <div class="col-span-6">Produk</div>
+                                <div class="col-span-2 text-center">Harga Satuan</div>
+                                <div class="col-span-2 text-center">Kuantitas</div>
+                                <div class="col-span-2 text-right">Total Harga</div>
+                            </div>
+                            <!-- Items -->
+                            <ul class="divide-y divide-gray-100">
+            `;
+
+            state.cart.forEach((item, index) => {
+                const product = state.products.find(p => p.id === item.productId);
+                const totalItem = product.price * item.qty;
+                subtotal += totalItem;
+
+                cartHtml += `
+                    <li class="p-4 grid grid-cols-12 gap-4 items-center">
+                        <div class="col-span-6 flex items-start gap-3">
+                            <img src="${product.img}" class="w-20 h-20 border border-gray-200 object-cover">
+                            <div class="flex flex-col">
+                                <h4 class="text-sm text-gray-800 font-medium line-clamp-2">${product.name}</h4>
+                                <p class="text-xs text-gray-500 mt-1"><i class="fas fa-store text-primary opacity-60"></i> ${product.seller}</p>
+                            </div>
+                        </div>
+                        <div class="col-span-2 text-center text-sm text-gray-700">
+                            ${formatRupiah(product.price)}
+                        </div>
+                        <div class="col-span-2 flex justify-center items-center">
+                            <div class="flex items-center border border-gray-300 rounded-sm">
+                                <button onclick="updateQty(${index}, -1)" class="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-100 border-r border-gray-300 transition"><i class="fas fa-minus text-xs"></i></button>
+                                <span class="w-10 h-8 flex items-center justify-center text-sm font-medium text-gray-800">${item.qty}</span>
+                                <button onclick="updateQty(${index}, 1)" class="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-100 border-l border-gray-300 transition"><i class="fas fa-plus text-xs"></i></button>
+                            </div>
+                        </div>
+                        <div class="col-span-2 text-right text-primary font-medium text-sm flex flex-col justify-center items-end">
+                            ${formatRupiah(totalItem)}
+                            <button onclick="removeFromCart(${index})" class="text-xs text-gray-400 hover:text-primary mt-2">Hapus</button>
+                        </div>
+                    </li>
+                `;
+            });
+
+            // Perhitungan Sesuai Tabel 6 & Flowmap
+            const marketplaceFee = subtotal * state.rules.feeMarketplace;
+            const ongkir = state.rules.feeLogistikFlat;
+            const totalBayar = subtotal + marketplaceFee + ongkir;
+
+            cartHtml += `
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <!-- Ringkasan Checkout Box -->
+                    <div class="lg:w-1/4">
+                        <div class="bg-white rounded-sm shadow-sm border border-gray-200 p-5 sticky top-24">
+                            <h2 class="text-sm font-bold text-gray-700 mb-4 uppercase border-b pb-2">Ringkasan Belanja</h2>
+                            
+                            <div class="space-y-2 text-xs text-gray-600 mb-4 border-b border-gray-100 pb-4">
+                                <div class="flex justify-between">
+                                    <span>Total Subtotal (${state.cart.length})</span>
+                                    <span>${formatRupiah(subtotal)}</span>
+                                </div>
+                                <div class="flex justify-between text-gray-400">
+                                    <span>Ongkos Kirim (Flat)</span>
+                                    <span>+ ${formatRupiah(ongkir)}</span>
+                                </div>
+                                <div class="flex justify-between text-gray-400">
+                                    <span>Biaya Layanan (2%)</span>
+                                    <span>+ ${formatRupiah(marketplaceFee)}</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Payment Source block mimicking ewallet -->
+                            <div class="mb-4 bg-gray-50 border border-gray-200 rounded p-3 text-xs">
+                                <div class="font-bold text-gray-700 mb-1">Metode Pembayaran:</div>
+                                <div class="flex justify-between items-center text-primary font-bold">
+                                    <span><i class="fas fa-wallet"></i> SmartBank</span>
+                                    <span>Saldo: ${formatRupiah(state.userBalance)}</span>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between items-center mb-6">
+                                <span class="text-sm font-bold text-gray-700">Total Tagihan</span>
+                                <span class="font-bold text-xl text-primary">${formatRupiah(totalBayar)}</span>
+                            </div>
+
+                            <button onclick="prosesCheckout(${subtotal}, ${marketplaceFee}, ${ongkir}, ${totalBayar})" class="w-full bg-primary hover:bg-orange-600 text-white font-bold py-3 px-4 rounded-sm shadow-sm transition uppercase text-sm">
+                                Buat Pesanan
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            return cartHtml;
+        }
+
+        // 3. Status Order / Pesanan
+        function renderPesanan() {
+            if (state.orders.length === 0) {
+                return `
+                    <div class="text-center py-20 bg-white border border-gray-200 fade-in rounded-sm">
+                        <i class="fas fa-clipboard-list text-6xl text-gray-200 mb-4"></i>
+                        <h2 class="text-lg font-medium text-gray-500 mb-4">Belum ada pesanan</h2>
+                    </div>
+                `;
+            }
+
+            let html = `
+                <div class="bg-white mb-4 border border-gray-200 rounded-sm overflow-hidden fade-in">
+                    <div class="flex text-sm text-center border-b border-gray-200">
+                        <div class="flex-1 py-3 text-primary border-b-2 border-primary cursor-pointer font-medium text-base">Semua Pesanan</div>
+                    </div>
+                </div>
+                <div class="space-y-4 fade-in">
+            `;
+
+            // Urutkan dari yang terbaru
+            [...state.orders].reverse().forEach(order => {
+                html += `
+                    <div class="bg-white p-5 rounded-sm shadow-sm border border-gray-200">
+                        <!-- Header -->
+                        <div class="flex justify-between items-center border-b border-gray-100 pb-3 mb-3 text-sm">
+                            <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-3 text-xs md:text-sm">
+                                <span class="font-bold text-gray-700 hover:text-primary cursor-pointer"><i class="fas fa-store text-gray-400 mr-1"></i> PasarKita UMKM</span>
+                                <span class="hidden md:inline text-gray-200">|</span>
+                                <span class="text-gray-400 font-mono">${order.id}</span>
+                                <span class="text-gray-400 font-medium ml-2"><i class="far fa-clock"></i> ${order.date}</span>
+                            </div>
+                            <div class="text-primary font-medium uppercase text-xs md:text-sm">
+                                ${order.status.includes('Selesai') ? 'Pesanan Selesai' : 'Sedang Dikemas'}
+                            </div>
+                        </div>
+                `;
+
+                // Order items
+                html += `<div class="space-y-3 border-b border-gray-100 pb-3 mb-3">`;
+                order.items.forEach(item => {
+                    const prod = state.products.find(p => p.id === item.productId);
+                    if (prod) {
+                        html += `
+                            <div class="flex items-center gap-3">
+                                <img src="${prod.img}" class="w-16 h-16 border border-gray-100 object-cover shrink-0">
+                                <div class="flex-grow">
+                                    <h4 class="text-sm text-gray-800 line-clamp-1">${prod.name}</h4>
+                                    <p class="text-xs text-gray-500 mt-1">x${item.qty}</p>
+                                </div>
+                                <div class="text-right text-sm text-primary">
+                                    ${formatRupiah(prod.price)}
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+                html += `</div>`;
+
+                // Footer Total
+                html += `
+                        <div class="flex justify-between items-center text-sm bg-[#fffaf8] -mx-5 px-5 -mb-5 py-4 border-t border-red-50 mt-4 rounded-b-sm">
+                            <span class="text-gray-500 text-xs flex items-center gap-2"><i class="fas fa-shield-alt text-primary"></i> <span class="hidden md:inline">Dibayar dengan </span>SmartBank</span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-gray-700">Total Pesanan:</span>
+                                <span class="font-medium text-2xl text-primary">${formatRupiah(order.total)}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `</div>`;
+            return html;
+        }
+
+        // 4. Manajemen Produk (Seller)
+        function renderSeller() {
+            let html = `
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 fade-in gap-4 bg-white p-4 border border-gray-200 rounded-sm">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-800">Produk Saya</h1>
+                        <p class="text-gray-500 text-sm">Kelola produk toko UMKM Anda</p>
+                    </div>
+                    <button onclick="showProductForm()" class="bg-primary hover:bg-orange-600 shadow-sm text-white font-medium py-2 px-6 rounded-sm transition flex items-center gap-2 text-sm uppercase">
+                        <i class="fas fa-plus"></i> Tambah Produk Baru
+                    </button>
+                </div>
+                
+                <div class="bg-white border border-gray-200 overflow-hidden fade-in rounded-sm">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-50 text-gray-500 text-xs font-semibold uppercase tracking-wide border-b border-gray-200">
+                                    <th class="p-4 w-1/2">Nama Produk</th>
+                                    <th class="p-4 text-center">Harga</th>
+                                    <th class="p-4 text-center">Stok</th>
+                                    <th class="p-4 text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 text-sm">
+            `;
+
+            state.products.forEach(p => {
+                html += `
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="p-4 flex items-center gap-4">
+                                        <div class="w-16 h-16 shrink-0 border border-gray-200"><img src="${p.img}" class="w-full h-full object-cover"></div>
+                                        <div>
+                                            <p class="text-gray-800 font-medium line-clamp-2">${p.name}</p>
+                                            <p class="text-xs text-gray-400 mt-1 font-mono">ID: ${p.id}</p>
+                                        </div>
+                                    </td>
+                                    <td class="p-4 font-medium text-gray-800 text-center">${formatRupiah(p.price)}</td>
+                                    <td class="p-4 text-center">
+                                        <span class="text-gray-800">${p.stock}</span>
+                                    </td>
+                                    <td class="p-4 text-right space-x-3 text-lg">
+                                        <button onclick="showProductForm('${p.id}')" class="text-blue-500 hover:text-blue-700 transition" title="Ubah Produk">Ubah</button>
+                                        <button onclick="deleteProduct('${p.id}')" class="text-red-500 hover:text-red-700 transition" title="Hapus Produk">Hapus</button>
+                                    </td>
+                                </tr>
+                `;
+            });
+
+            html += `
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Info Keuangan -->
+                <div class="mt-4 bg-orange-50 border border-orange-100 rounded-sm p-4 fade-in">
+                    <h3 class="font-bold text-orange-800 mb-1 text-sm"><i class="fas fa-info-circle mr-1"></i> Informasi Penarikan Dana</h3>
+                    <p class="text-xs text-orange-700">
+                        <code class="bg-white px-2 py-0.5 rounded border border-orange-200 mt-1 inline-block text-gray-700">Net Payout = Total Pesanan - Fee Marketplace (2%) - Ongkos Kirim (Flat)</code>
+                    </p>
+                </div>
+            `;
+            return html;
+        }
+
+
+        // --- LOGIC & ACTIONS ---
+
+        function addToCart(productId) {
+            const existing = state.cart.find(i => i.productId === productId);
+            const product = state.products.find(p => p.id === productId);
+
+            if (existing) {
+                if (existing.qty < product.stock) existing.qty += 1;
+                else return showToast('Maksimum pembelian dibatasi oleh stok!', 'error');
+            } else {
+                state.cart.push({ productId, qty: 1 });
+            }
+
+            showToast('Produk ditambahkan ke keranjang');
+            updateCartBadge();
+            if (state.currentView === 'katalog') render();
+        }
+
+        function updateQty(index, change) {
+            const item = state.cart[index];
+            const product = state.products.find(p => p.id === item.productId);
+
+            item.qty += change;
+            if (item.qty <= 0) {
+                removeFromCart(index);
+                return;
+            }
+            if (item.qty > product.stock) {
+                item.qty = product.stock;
+                showToast('Stok tidak cukup', 'error');
+            }
+            render(); // always keranjang view
+        }
+
+        function removeFromCart(index) {
+            state.cart.splice(index, 1);
+            render();
+            updateCartBadge();
+        }
+
+        function updateCartBadge() {
+            const badge = document.getElementById('cart-badge');
+            if (!badge) return;
+            const totalItems = state.cart.reduce((sum, item) => sum + item.qty, 0);
+            if (totalItems > 0) {
+                badge.innerText = totalItems > 99 ? '99+' : totalItems;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+
+        // --- SELLER / PRODUCT MANAGEMENT SIMULATION ---
+        function showProductForm(productId = null) {
+            const modal = document.getElementById('product-modal');
+            const title = document.getElementById('product-modal-title');
+
+            if (productId) {
+                const p = state.products.find(x => x.id === productId);
+                if (p) {
+                    title.innerText = 'Edit Produk';
+                    document.getElementById('product-id').value = p.id;
+                    document.getElementById('product-name').value = p.name;
+                    document.getElementById('product-price').value = p.price;
+                    document.getElementById('product-stock').value = p.stock;
+                    document.getElementById('product-img').value = p.img;
+                }
+            } else {
+                title.innerText = 'Tambah Produk';
+                document.getElementById('product-id').value = '';
+                document.getElementById('product-name').value = '';
+                document.getElementById('product-price').value = '';
+                document.getElementById('product-stock').value = '';
+                document.getElementById('product-img').value = '';
+            }
+            modal.classList.remove('hidden');
+        }
+
+        function hideProductForm() {
+            document.getElementById('product-modal').classList.add('hidden');
+        }
+
+        function saveProduct() {
+            const id = document.getElementById('product-id').value;
+            const name = document.getElementById('product-name').value;
+            const price = parseInt(document.getElementById('product-price').value);
+            const stock = parseInt(document.getElementById('product-stock').value);
+            const img = document.getElementById('product-img').value || 'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?auto=format&fit=crop&w=300&q=80';
+
+            if (!name || !price || isNaN(stock)) {
+                showToast('Info produk belum lengkap', 'error');
+                return;
+            }
+
+            if (id) {
+                const p = state.products.find(x => x.id === id);
+                if (p) {
+                    p.name = name;
+                    p.price = price;
+                    p.stock = stock;
+                    if (document.getElementById('product-img').value) p.img = img;
+                    showToast('Produk diperbarui');
+                }
+            } else {
+                const newId = 'P' + Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+                state.products.push({
+                    id: newId,
+                    name,
+                    price,
+                    stock,
+                    seller: 'Toko Admin',
+                    img
+                });
+                showToast('Produk ditambahkan');
+            }
+
+            hideProductForm();
+            render();
+        }
+
+        function deleteProduct(productId) {
+            if (confirm('Hapus produk ini secara permanen?')) {
+                state.products = state.products.filter(p => p.id !== productId);
+                state.cart = state.cart.filter(c => c.productId !== productId);
+                showToast('Produk dihapus');
+                render();
+            }
+        }
+
+
+        // --- CHECKOUT SIMULATION ---
+
+        const modal = document.getElementById('process-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalDesc = document.getElementById('modal-desc');
+        const modalIcon = document.getElementById('modal-icon');
+        const modalLog = document.getElementById('modal-log');
+        const modalCloseBtn = document.getElementById('modal-close-btn');
+
+        function updateModalState(title, desc, iconClass, iconColor, logMsg) {
+            modalTitle.innerText = title;
+            modalDesc.innerText = desc;
+            modalIcon.innerHTML = `<i class="${iconClass}"></i>`;
+            modalIcon.className = `text-4xl mb-4 ${iconColor}`;
+            if (logMsg) {
+                modalLog.classList.remove('hidden');
+                modalLog.innerHTML += `<div><span class="text-primary font-bold">></span> ${logMsg}</div>`;
+                modalLog.scrollTop = modalLog.scrollHeight;
+            }
+        }
+
+        function closeModal() {
+            modal.classList.add('hidden');
+            modalLog.innerHTML = '';
+            modalLog.classList.add('hidden');
+            modalCloseBtn.classList.add('hidden');
+            navigate('pesanan');
+        }
+
+        function prosesCheckout(subtotal, fee, ongkir, totalBayar) {
+            if (totalBayar > state.userBalance) {
+                showToast('Saldo SmartBank Anda tidak mencukupi!', 'error');
+                return;
+            }
+
+            const selectedPayment = 'SmartBank';
+            const orderId = generateId();
+            const orderData = {
+                id: orderId,
+                items: [...state.cart],
+                subtotal: subtotal,
+                fee: fee,
+                ongkir: ongkir,
+                total: totalBayar,
+                payment: selectedPayment,
+                status: 'Menunggu Pembayaran',
+                date: new Date().toLocaleDateString('id-ID')
+            };
+
+            modal.classList.remove('hidden');
+            updateModalState('Memproses Transaksi', `Meneruskan pesanan...`, 'fas fa-cog fa-spin', 'text-gray-500', `Checkout ID ${orderId}`);
+
+            setTimeout(() => {
+                updateModalState(
+                    'Verifikasi Keuangan',
+                    'Mengamankan transaksi ke Pusat Sistem...',
+                    'fas fa-shield-alt text-primary fa-pulse',
+                    'text-primary',
+                    `Verifikasi JWT dan Saldo SmartBank...`
+                );
+
+                setTimeout(() => {
+                    updateModalState(
+                        'Pengecekan Berhasil',
+                        'Mengecek saldo & debit/kredit...',
+                        'fas fa-check-circle text-green-500',
+                        'text-green-500',
+                        `SmartBank: Saldo dipotong (-${formatRupiah(totalBayar)})`
+                    );
+
+                    setTimeout(() => {
+                        // POTONG BALANS SEKARANG
+                        state.userBalance -= totalBayar;
+                        // update UI navbar
+                        try {
+                            const wallets = document.querySelectorAll('.fa-wallet');
+                            wallets.forEach(w => {
+                                if (w.nextElementSibling) w.nextElementSibling.innerText = formatRupiah(state.userBalance);
+                            });
+                        } catch (e) { }
+
+                        updateModalState(
+                            'Instruksi Kurir',
+                            'Menyiapkan detail pengiriman...',
+                            'fas fa-truck text-orange-500 fa-beat',
+                            'text-orange-500',
+                            `LogistiKita: Menerima Order ${orderId}`
+                        );
+
+                        setTimeout(() => {
+                            orderData.status = 'Sedang Dikemas / Diproses Logistik';
+                            orderData.items.forEach(item => {
+                                const prod = state.products.find(p => p.id === item.productId);
+                                if (prod) prod.stock -= item.qty;
+                            });
+
+                            state.orders.push(orderData);
+                            state.cart = [];
+
+                            updateModalState(
+                                'Pesanan Berhasil Dibuat!',
+                                'Pembayaran diterima dan barang akan disiapkan oleh Toko.',
+                                'fas fa-check-circle text-primary',
+                                'text-primary',
+                                `Transaksi Selesai.`
+                            );
+                            modalCloseBtn.classList.remove('hidden');
+
+                        }, 1200);
+                    }, 1200);
+                }, 1200);
+            }, 800);
+        }
+
+        // --- INIT ---
+        document.addEventListener('DOMContentLoaded', () => {
+            render();
+        });
+
+    </script>
+</body>
+
+</html>

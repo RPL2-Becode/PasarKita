@@ -1,0 +1,120 @@
+<?php
+/**
+ * Order Model
+ */
+class Order_model {
+    private $db;
+
+    public function __construct() {
+        $this->db = new Database();
+    }
+
+    // Create Order
+    public function createOrder($data) {
+        $order_id = 'ORD-' . date('Ymd') . '-' . rand(1000, 9999);
+        
+        $this->db->query('INSERT INTO orders (id, buyer_id, total_subtotal, fee_marketplace, fee_shipping, total_payment, status) VALUES(:id, :buyer_id, :subtotal, :fee_m, :fee_s, :total, :status)');
+        
+        $this->db->bind(':id', $order_id);
+        $this->db->bind(':buyer_id', $data['buyer_id']);
+        $this->db->bind(':subtotal', $data['subtotal']);
+        $this->db->bind(':fee_m', $data['fee_marketplace']);
+        $this->db->bind(':fee_s', $data['fee_shipping']);
+        $this->db->bind(':total', $data['total_payment']);
+        $this->db->bind(':status', 'Menunggu Pembayaran');
+
+        if ($this->db->execute()) {
+            return $order_id;
+        } else {
+            return false;
+        }
+    }
+
+    // Create Order Item
+    public function addOrderItem($order_id, $product_id, $quantity, $price) {
+        $this->db->query('INSERT INTO order_items (order_id, product_id, quantity, price_at_purchase) VALUES(:order_id, :product_id, :qty, :price)');
+        $this->db->bind(':order_id', $order_id);
+        $this->db->bind(':product_id', $product_id);
+        $this->db->bind(':qty', $quantity);
+        $this->db->bind(':price', $price);
+
+        return $this->db->execute();
+    }
+
+    // Update Order Status
+    public function updateStatus($order_id, $status) {
+        $this->db->query('UPDATE orders SET status = :status WHERE id = :id');
+        $this->db->bind(':status', $status);
+        $this->db->bind(':id', $order_id);
+        return $this->db->execute();
+    }
+
+    // Update SmartBank transaction ID
+    public function updateSmartBankTrxId($order_id, $trx_id) {
+        $this->db->query('UPDATE orders SET smartbank_trx_id = :trx_id WHERE id = :id');
+        $this->db->bind(':trx_id', $trx_id);
+        $this->db->bind(':id', $order_id);
+        return $this->db->execute();
+    }
+
+    // Get all orders (for admin/operator)
+    public function getAllOrders() {
+        $this->db->query('SELECT o.*, u.username as buyer_name FROM orders o LEFT JOIN users u ON o.buyer_id = u.id ORDER BY o.created_at DESC');
+        return $this->db->resultSet();
+    }
+
+    // Get orders by status
+    public function getOrdersByStatus($status) {
+        $this->db->query('SELECT o.*, u.username as buyer_name FROM orders o LEFT JOIN users u ON o.buyer_id = u.id WHERE o.status = :status ORDER BY o.created_at DESC');
+        $this->db->bind(':status', $status);
+        return $this->db->resultSet();
+    }
+
+    // Get order by ID
+    public function getOrderById($order_id) {
+        $this->db->query('SELECT o.*, u.username as buyer_name FROM orders o LEFT JOIN users u ON o.buyer_id = u.id WHERE o.id = :id');
+        $this->db->bind(':id', $order_id);
+        return $this->db->single();
+    }
+
+    // Get order items
+    public function getOrderItems($order_id) {
+        $this->db->query('SELECT oi.*, p.name as product_name, p.image_url FROM order_items oi LEFT JOIN products p ON oi.product_id = p.id WHERE oi.order_id = :order_id');
+        $this->db->bind(':order_id', $order_id);
+        return $this->db->resultSet();
+    }
+
+    // Get orders by buyer
+    public function getOrdersByBuyer($buyer_id) {
+        $this->db->query('SELECT * FROM orders WHERE buyer_id = :buyer_id ORDER BY created_at DESC');
+        $this->db->bind(':buyer_id', $buyer_id);
+        return $this->db->resultSet();
+    }
+
+    // Dashboard statistics
+    public function getTotalRevenue() {
+        $this->db->query("SELECT SUM(total_payment) as total FROM orders WHERE status NOT IN ('Dibatalkan', 'Menunggu Pembayaran')");
+        $result = $this->db->single();
+        return $result->total ?? 0;
+    }
+
+    public function getTotalFees() {
+        $this->db->query("SELECT SUM(fee_marketplace) as total FROM orders WHERE status NOT IN ('Dibatalkan', 'Menunggu Pembayaran')");
+        $result = $this->db->single();
+        return $result->total ?? 0;
+    }
+
+    public function getOrderCount() {
+        $this->db->query('SELECT COUNT(*) as total FROM orders');
+        $result = $this->db->single();
+        return $result->total ?? 0;
+    }
+
+    public function getOrderCountByStatus($status) {
+        $this->db->query('SELECT COUNT(*) as total FROM orders WHERE status = :status');
+        $this->db->bind(':status', $status);
+        $result = $this->db->single();
+        return $result->total ?? 0;
+    }
+}
+?>

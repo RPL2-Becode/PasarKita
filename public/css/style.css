@@ -1,0 +1,229 @@
+/* ============================================
+   PasarKita - Custom Stylesheet
+   Supplements Tailwind CSS CDN
+   ============================================ */
+
+/* ---- Global Transitions ---- */
+* {
+    transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+    transition-timing-function: ease-in-out;
+    transition-duration: 200ms;
+}
+
+/* ---- Animations ---- */
+.fade-in {
+    animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.slide-up {
+    animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.scale-in {
+    animation: scaleIn 0.3s ease-out;
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* ---- Card Hover Effects ---- */
+.card-hover {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px -8px rgba(238, 77, 45, 0.15);
+}
+
+/* ---- Product Image Container ---- */
+.product-img-container {
+    overflow: hidden;
+    border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.product-img-container img {
+    transition: transform 0.4s ease;
+}
+
+.product-img-container:hover img {
+    transform: scale(1.05);
+}
+
+/* ---- Button Styles ---- */
+.btn-primary {
+    background: linear-gradient(135deg, #ee4d2d 0%, #ff7337 100%);
+    color: white;
+    font-weight: 600;
+    padding: 0.625rem 1.5rem;
+    border-radius: 0.5rem;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(238, 77, 45, 0.3);
+}
+
+.btn-primary:hover {
+    box-shadow: 0 6px 20px rgba(238, 77, 45, 0.45);
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background-color: white;
+    color: #ee4d2d;
+    font-weight: 600;
+    padding: 0.625rem 1.5rem;
+    border-radius: 0.5rem;
+    border: 2px solid #ee4d2d;
+    cursor: pointer;
+}
+
+.btn-secondary:hover {
+    background-color: #fff5f3;
+}
+
+/* ---- Flash Message ---- */
+#msg-flash {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* ---- Scrollbar Styling ---- */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #999;
+}
+
+/* ---- Badge ---- */
+.badge {
+    display: inline-block;
+    padding: 0.15rem 0.6rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    border-radius: 9999px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.badge-success {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.badge-warning {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.badge-danger {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.badge-info {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+/* ---- Table Styles ---- */
+.table-container {
+    overflow-x: auto;
+    border-radius: 0.75rem;
+    border: 1px solid #e5e7eb;
+}
+
+.table-container table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table-container th {
+    background-color: #f9fafb;
+    text-align: left;
+    padding: 0.75rem 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6b7280;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.table-container td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #f3f4f6;
+    font-size: 0.875rem;
+}
+
+.table-container tr:hover {
+    background-color: #fef7f5;
+}
+
+/* ---- Modal / Overlay ---- */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 1rem;
+    padding: 2rem;
+    max-width: 500px;
+    width: 90%;
+    animation: scaleIn 0.3s ease-out;
+}
+
+/* ---- Status Colors ---- */
+.status-menunggu { color: #d97706; }
+.status-konfirmasi { color: #2563eb; }
+.status-dikemas { color: #7c3aed; }
+.status-dikirim { color: #0891b2; }
+.status-selesai { color: #059669; }
+.status-dibatalkan { color: #dc2626; }
