@@ -73,9 +73,9 @@ Semua akun di bawah ini menggunakan kata sandi (password) default yang sama yait
 | Role (Peran) | Username | Password |
 | :--- | :--- | :--- |
 | **Admin** | `admin` | `admin123` |
-| **Operator** | `juna` | `admin123` |
-| **Pelapak** | `pelapak1` | `admin123` |
-| **Consumen** | `budi` | `admin123` |
+| **Operator** | `juna` | `operator123` |
+| **Pelapak** | `pelapak1` | `pelapak123` |
+| **Consumen** | `budi` | `budi123` |
 
 *(Note: Sistem dilengkapi fitur Lupa Password bawaan yang terkoneksi langsung ke database).*
 
