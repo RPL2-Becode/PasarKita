@@ -45,6 +45,8 @@ CREATE TABLE IF NOT EXISTS orders (
     total_payment DECIMAL(15,2),
     status ENUM('Menunggu Pembayaran', 'Menunggu Konfirmasi', 'Sedang Dikemas', 'Dikirim', 'Selesai', 'Dibatalkan') DEFAULT 'Menunggu Pembayaran',
     smartbank_trx_id VARCHAR(100),
+    shipping_service VARCHAR(50) DEFAULT NULL COMMENT 'e.g. JNE, J&T, SiCepat',
+    resi_number VARCHAR(100) DEFAULT NULL COMMENT 'Nomor resi pengiriman',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (buyer_id) REFERENCES users(id)
 );
@@ -63,9 +65,34 @@ CREATE TABLE IF NOT EXISTS order_items (
 -- Initial Data
 INSERT INTO categories (name) VALUES ('Makanan'), ('Minuman'), ('Pakaian'), ('Kerajinan');
 
--- Dummy User (Password: admin123)
+-- Dummy User (Admin: admin123, Budi: budi123, Juna: juna123, RajaKentang: kentang123)
 INSERT INTO users (username, password, role, balance) VALUES 
-('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', 0),
-('budi', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'consumen', 5000000),
-('pelapak1', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'pelapak', 0),
-('juna', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'operator', 0);
+('admin', '$2y$10$S7x1hbrL4bavEMz2B7O4ceRIixBHHH7SliQ/VmQaIzlmYMu0LU3La', 'admin', 0),
+('budi', '$2y$10$MHBBH5ioHp77Sp0CldFsruKXlLDqN04Xjtp5q/1Se43T5Shkpfoay', 'consumen', 5000000),
+('RajaKentang', '$2y$10$/J3YcnlQl2EnvA08jtL2o.1/svrPMDFjVgOqnRUvkbQ0ek/NVzR3a', 'pelapak', 0),
+('juna', '$2y$10$juKShCgEaSTiVhCMskzSh.dyDnBZFmZTcrivHdgZh3X1mobF1LnM6', 'operator', 0);
+
+-- Reviews Table
+CREATE TABLE IF NOT EXISTS reviews (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    product_id INT,
+    user_id INT,
+    order_id VARCHAR(20),
+    rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    comment TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (product_id) REFERENCES products(id),
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (order_id) REFERENCES orders(id)
+);
+
+-- Wishlists Table
+CREATE TABLE IF NOT EXISTS wishlists (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    product_id INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (product_id) REFERENCES products(id),
+    UNIQUE(user_id, product_id)
+);

@@ -9,7 +9,8 @@ define('DB_NAME', 'pasar_kita');
 /**
  * Database connection using PDO
  */
-class Database {
+class Database
+{
     private $host = DB_HOST;
     private $user = DB_USER;
     private $pass = DB_PASS;
@@ -19,10 +20,11 @@ class Database {
     private $error;
     private $stmt;
 
-    public function __construct() {
+    public function __construct()
+    {
         // Set DSN
         $dsn = 'mysql:host=' . $this->host . ';dbname=' . $this->dbname;
-        
+
         // Set options
         $options = array(
             PDO::ATTR_PERSISTENT => true,
@@ -39,12 +41,14 @@ class Database {
     }
 
     // Prepare statement with query
-    public function query($sql) {
+    public function query($sql)
+    {
         $this->stmt = $this->dbh->prepare($sql);
     }
 
     // Bind values
-    public function bind($param, $value, $type = null) {
+    public function bind($param, $value, $type = null)
+    {
         if (is_null($type)) {
             switch (true) {
                 case is_int($value):
@@ -64,24 +68,28 @@ class Database {
     }
 
     // Execute the prepared statement
-    public function execute() {
+    public function execute()
+    {
         return $this->stmt->execute();
     }
 
     // Get result set as array of objects
-    public function resultSet() {
+    public function resultSet()
+    {
         $this->execute();
         return $this->stmt->fetchAll(PDO::FETCH_OBJ);
     }
 
     // Get single record as object
-    public function single() {
+    public function single()
+    {
         $this->execute();
         return $this->stmt->fetch(PDO::FETCH_OBJ);
     }
 
     // Get row count
-    public function rowCount() {
+    public function rowCount()
+    {
         return $this->stmt->rowCount();
     }
 }

@@ -11,6 +11,8 @@
         </div>
     </div>
 
+    <?php flash('pesanan_message'); ?>
+
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div class="md:col-span-2 space-y-6">
             <!-- Order Items -->
@@ -32,6 +34,11 @@
                             </div>
                             <div class="text-right">
                                 <p class="font-extrabold text-primary">Rp <?php echo number_format($item->quantity * $item->price_at_purchase, 0, ',', '.'); ?></p>
+                                <?php if($data['order']->status == 'Selesai' && !$item->has_reviewed) : ?>
+                                    <button onclick="openReviewModal(<?php echo $item->product_id; ?>, '<?php echo addslashes($item->product_name); ?>')" class="mt-2 text-xs bg-orange-100 text-primary font-bold px-3 py-1 rounded-lg hover:bg-primary hover:text-white transition">Beri Ulasan</button>
+                                <?php elseif($item->has_reviewed) : ?>
+                                    <span class="mt-2 text-xs text-green-500 inline-block font-bold"><i class="fas fa-check"></i> Sudah diulas</span>
+                                <?php endif; ?>
                             </div>
                         </div>
                     <?php endforeach; ?>
@@ -70,7 +77,7 @@
                         <span class="font-semibold text-gray-800">Rp <?php echo number_format($data['order']->total_subtotal, 0, ',', '.'); ?></span>
                     </div>
                     <div class="flex justify-between text-sm">
-                        <span class="text-gray-500">Ongkos Kirim</span>
+                        <span class="text-gray-500">Ongkos Kirim <?= !empty($data['order']->shipping_service) ? '(' . $data['order']->shipping_service . ')' : ''; ?></span>
                         <span class="font-semibold text-gray-800">Rp <?php echo number_format($data['order']->fee_shipping, 0, ',', '.'); ?></span>
                     </div>
                     <div class="flex justify-between text-sm">
@@ -84,8 +91,124 @@
                     <span class="text-xl font-extrabold text-primary">Rp <?php echo number_format($data['order']->total_payment, 0, ',', '.'); ?></span>
                 </div>
             </div>
+
+            <!-- Tracking Info (Phase 2) -->
+            <?php if(in_array($data['order']->status, ['Dikirim', 'Selesai']) && !empty($data['order']->resi_number)) : ?>
+            <div class="bg-blue-50 rounded-2xl border border-blue-100 shadow-sm p-6">
+                <h3 class="font-bold text-blue-800 mb-4 pb-2 border-b border-blue-100 flex items-center gap-2">
+                    <i class="fas fa-truck text-blue-500"></i> Info Pengiriman
+                </h3>
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-blue-600">Jasa Pengiriman</span>
+                        <span class="font-bold text-blue-800 bg-white px-3 py-1 rounded-full text-sm border border-blue-200">
+                            <?= htmlspecialchars($data['order']->shipping_service); ?>
+                        </span>
+                    </div>
+                    <div>
+                        <span class="text-sm text-blue-600 block mb-1">Nomor Resi</span>
+                        <div class="flex items-center gap-2 bg-white border border-blue-200 rounded-xl p-3">
+                            <span class="font-mono font-bold text-gray-800 flex-grow"><?= htmlspecialchars($data['order']->resi_number); ?></span>
+                            <button onclick="navigator.clipboard.writeText('<?= $data['order']->resi_number; ?>').then(()=>alert('Resi disalin!'))" class="text-blue-500 hover:text-blue-700 transition text-sm" title="Salin resi">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <?php
+                    // LogistikKita currently doesn't have an external tracking URL in the system
+                    // But we can add a placeholder or internal link if needed later
+                    $tracking_url = null; 
+                    if($tracking_url) :
+                    ?>
+                    <a href="<?= $tracking_url; ?>" target="_blank" class="block w-full text-center bg-blue-600 text-white font-bold py-2.5 rounded-xl hover:bg-blue-700 transition text-sm">
+                        <i class="fas fa-external-link-alt mr-2"></i>Lacak Paket di <?= $data['order']->shipping_service; ?>
+                    </a>
+                    <?php endif; ?>
+                </div>
+            </div>
+            <?php elseif($data['order']->status == 'Dikirim') : ?>
+            <div class="bg-yellow-50 rounded-2xl border border-yellow-100 p-4">
+                <p class="text-sm text-yellow-700 text-center"><i class="fas fa-clock mr-2"></i>Nomor resi sedang diproses oleh penjual.</p>
+            </div>
+            <?php endif; ?>
         </div>
     </div>
 </div>
+
+<!-- Review Modal -->
+<div id="reviewModal" class="fixed inset-0 bg-black/50 z-[100] hidden items-center justify-center fade-in">
+    <div class="bg-white rounded-2xl w-full max-w-md mx-4 shadow-2xl overflow-hidden">
+        <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+            <h3 class="font-bold text-gray-800">Beri Ulasan Produk</h3>
+            <button onclick="closeReviewModal()" class="text-gray-400 hover:text-red-500"><i class="fas fa-times"></i></button>
+        </div>
+        <form action="/review/submit" method="POST" class="p-6">
+            <input type="hidden" name="order_id" value="<?php echo $data['order']->id; ?>">
+            <input type="hidden" name="product_id" id="review_product_id" value="">
+            
+            <div class="mb-4 text-center">
+                <p class="text-sm text-gray-500 mb-2">Produk:</p>
+                <p class="font-bold text-gray-800" id="review_product_name"></p>
+            </div>
+
+            <div class="mb-6 flex justify-center gap-2 text-3xl text-gray-300" id="star-rating">
+                <i class="fas fa-star cursor-pointer hover:text-yellow-400 transition" data-rating="1"></i>
+                <i class="fas fa-star cursor-pointer hover:text-yellow-400 transition" data-rating="2"></i>
+                <i class="fas fa-star cursor-pointer hover:text-yellow-400 transition" data-rating="3"></i>
+                <i class="fas fa-star cursor-pointer hover:text-yellow-400 transition" data-rating="4"></i>
+                <i class="fas fa-star cursor-pointer hover:text-yellow-400 transition" data-rating="5"></i>
+            </div>
+            <input type="hidden" name="rating" id="review_rating" value="5" required>
+
+            <div class="mb-4">
+                <label class="block text-xs font-bold text-gray-600 uppercase mb-2">Ulasan / Komentar (Opsional)</label>
+                <textarea name="comment" rows="3" class="w-full border-gray-200 rounded-lg focus:border-primary focus:ring focus:ring-primary/20 transition-all text-sm p-3 border" placeholder="Bagaimana kualitas produk ini?"></textarea>
+            </div>
+
+            <button type="submit" class="w-full bg-primary text-white font-bold py-3 rounded-xl hover:bg-orange-700 transition">Kirim Ulasan</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    const stars = document.querySelectorAll('#star-rating i');
+    const ratingInput = document.getElementById('review_rating');
+
+    stars.forEach(star => {
+        star.addEventListener('click', function() {
+            const rating = this.getAttribute('data-rating');
+            ratingInput.value = rating;
+            
+            // Update UI
+            stars.forEach(s => {
+                if(s.getAttribute('data-rating') <= rating) {
+                    s.classList.remove('text-gray-300');
+                    s.classList.add('text-yellow-400');
+                } else {
+                    s.classList.remove('text-yellow-400');
+                    s.classList.add('text-gray-300');
+                }
+            });
+        });
+    });
+
+    // Default to 5 stars UI
+    stars.forEach(s => {
+        s.classList.remove('text-gray-300');
+        s.classList.add('text-yellow-400');
+    });
+
+    function openReviewModal(productId, productName) {
+        document.getElementById('review_product_id').value = productId;
+        document.getElementById('review_product_name').textContent = productName;
+        document.getElementById('reviewModal').classList.remove('hidden');
+        document.getElementById('reviewModal').classList.add('flex');
+    }
+
+    function closeReviewModal() {
+        document.getElementById('reviewModal').classList.add('hidden');
+        document.getElementById('reviewModal').classList.remove('flex');
+    }
+</script>
 
 <?php require_once '../app/views/templates/footer.php'; ?>

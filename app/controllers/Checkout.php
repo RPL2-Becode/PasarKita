@@ -19,7 +19,8 @@ class Checkout extends Controller {
             // Calculate fees on server-side (Biaya Layanan - 2%)
             $subtotal = floatval($_POST['subtotal']);
             $fee_marketplace = $subtotal * 0.02;  // 2% fee as per planning
-            $fee_shipping = 5000;                  // Flat rate Rp 5,000 as per planning
+            $fee_shipping = 5000; // Flat rate as per planning
+            $shipping_service = 'LogistikKita';
             $total_payment = $subtotal + $fee_marketplace + $fee_shipping;
 
             $data = [
@@ -27,6 +28,7 @@ class Checkout extends Controller {
                 'subtotal' => $subtotal,
                 'fee_marketplace' => $fee_marketplace,
                 'fee_shipping' => $fee_shipping,
+                'shipping_service' => $shipping_service,
                 'total_payment' => $total_payment
             ];
 
@@ -47,7 +49,13 @@ class Checkout extends Controller {
                     $this->orderModel->updateStatus($order_id, 'Menunggu Konfirmasi');
                     $this->orderModel->updateSmartBankTrxId($order_id, $smartbank_result['trx_id']);
                     
-                    // 5. Clear cart
+                    // 5. Reduce stock for each purchased product
+                    $productModel = $this->model('Product_model');
+                    foreach ($_SESSION['cart'] as $item) {
+                        $productModel->reduceStock($item['id'], $item['quantity']);
+                    }
+
+                    // 6. Clear cart
                     $_SESSION['cart'] = [];
                     
                     $data['order_id'] = $order_id;

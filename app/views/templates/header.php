@@ -43,6 +43,9 @@
                         <a href="/pesanan" class="text-sm font-semibold text-gray-600 hover:text-primary transition hidden md:inline"><i class="fas fa-receipt mr-1"></i> Pesanan Saya</a>
                     <?php endif; ?>
                 <?php endif; ?>
+                <a href="/wishlist" class="relative p-2 text-gray-600 hover:text-red-500 transition" title="Wishlist">
+                    <i class="fas fa-heart text-xl"></i>
+                </a>
                 <a href="/cart" class="relative p-2 text-gray-600 hover:text-primary transition">
                     <i class="fas fa-shopping-cart text-xl"></i>
                     <?php if(isset($_SESSION['cart']) && count($_SESSION['cart']) > 0) : ?>

@@ -38,6 +38,11 @@ class Pesanan extends Controller {
         }
 
         $items = $this->orderModel->getOrderItems($id);
+        $reviewModel = $this->model('Review_model');
+
+        foreach($items as $item) {
+            $item->has_reviewed = $reviewModel->hasReviewed($order->id, $item->product_id, $_SESSION['user_id']);
+        }
 
         $data = [
             'title' => 'Detail Pesanan ' . $order->id . ' - PasarKita',

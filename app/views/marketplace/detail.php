@@ -29,6 +29,23 @@
 
                     <h1 class="text-3xl font-extrabold text-gray-900 mb-2"><?php echo $p->name; ?></h1>
                     
+                    <?php if(isset($data['ratingStats']['review_count']) && $data['ratingStats']['review_count'] > 0) : ?>
+                    <div class="flex items-center gap-2 mb-3">
+                        <div class="flex text-yellow-400 text-sm">
+                            <?php 
+                            $avg = $data['ratingStats']['avg_rating'];
+                            for($i=1; $i<=5; $i++) {
+                                if($i <= $avg) echo '<i class="fas fa-star"></i>';
+                                else if($i - 0.5 <= $avg) echo '<i class="fas fa-star-half-alt"></i>';
+                                else echo '<i class="far fa-star"></i>';
+                            }
+                            ?>
+                        </div>
+                        <span class="text-sm font-bold text-gray-700"><?php echo $avg; ?>/5</span>
+                        <span class="text-sm text-gray-400">(<?php echo $data['ratingStats']['review_count']; ?> Ulasan)</span>
+                    </div>
+                    <?php endif; ?>
+                    
                     <p class="text-sm text-gray-400 mb-4">
                         <i class="fas fa-store mr-1"></i> Dijual oleh <span class="font-semibold text-gray-600"><?php echo $p->seller_name ?? 'Penjual'; ?></span>
                     </p>
@@ -66,9 +83,24 @@
                             <i class="fas fa-ban mr-2"></i> Stok Habis
                         </button>
                     <?php endif; ?>
-                    <a href="/marketplace" class="block w-full text-center border-2 border-gray-200 text-gray-600 font-bold py-3 rounded-xl hover:border-primary hover:text-primary transition">
-                        <i class="fas fa-arrow-left mr-2"></i> Lihat Produk Lain
-                    </a>
+                    <div class="flex gap-2">
+                        <a href="/marketplace" class="flex-1 block w-full text-center border-2 border-gray-200 text-gray-600 font-bold py-3 rounded-xl hover:border-primary hover:text-primary transition">
+                            <i class="fas fa-arrow-left mr-2"></i> Lainnya
+                        </a>
+                        <?php if(isset($data['in_wishlist']) && $data['in_wishlist']) : ?>
+                        <form action="/wishlist/remove/<?php echo $p->id; ?>" method="POST" class="flex-1 flex block w-full">
+                            <button type="submit" class="w-full text-center border-2 border-red-500 text-red-500 bg-red-50 font-bold py-3 rounded-xl hover:bg-red-100 transition">
+                                <i class="fas fa-heart mr-2"></i> Tersimpan
+                            </button>
+                        </form>
+                        <?php else : ?>
+                        <form action="/wishlist/add/<?php echo $p->id; ?>" method="POST" class="flex-1 flex block w-full">
+                            <button type="submit" class="w-full text-center border-2 border-gray-200 text-gray-600 font-bold py-3 rounded-xl hover:border-red-500 hover:text-red-500 transition">
+                                <i class="far fa-heart mr-2"></i> Wishlist
+                            </button>
+                        </form>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </div>
         </div>
@@ -80,6 +112,44 @@
             <p class="text-gray-600 leading-relaxed whitespace-pre-line"><?php echo $p->description; ?></p>
         </div>
         <?php endif; ?>
+
+        <!-- Reviews Section -->
+        <div class="border-t border-gray-100 p-8">
+            <h2 class="text-lg font-bold text-gray-800 mb-6"><i class="fas fa-star mr-2 text-yellow-400"></i>Ulasan Pembeli</h2>
+            
+            <?php if(empty($data['reviews'])) : ?>
+                <div class="text-center py-8 bg-gray-50 rounded-xl">
+                    <i class="far fa-comment-dots text-4xl text-gray-300 mb-2"></i>
+                    <p class="text-gray-500">Belum ada ulasan untuk produk ini.</p>
+                </div>
+            <?php else : ?>
+                <div class="space-y-6">
+                    <?php foreach($data['reviews'] as $review) : ?>
+                        <div class="border-b border-gray-50 pb-6 last:border-0 last:pb-0">
+                            <div class="flex items-center gap-3 mb-2">
+                                <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-primary font-bold">
+                                    <?php echo strtoupper(substr($review->username, 0, 1)); ?>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-gray-800 text-sm"><?php echo $review->username; ?></p>
+                                    <div class="flex text-yellow-400 text-xs">
+                                        <?php for($i=1; $i<=5; $i++) : ?>
+                                            <i class="<?php echo $i <= $review->rating ? 'fas' : 'far'; ?> fa-star"></i>
+                                        <?php endfor; ?>
+                                    </div>
+                                </div>
+                                <div class="ml-auto text-xs text-gray-400">
+                                    <?php echo date('d M Y', strtotime($review->created_at)); ?>
+                                </div>
+                            </div>
+                            <?php if(!empty($review->comment)) : ?>
+                                <p class="text-gray-600 text-sm ml-13 pl-13"><?php echo htmlspecialchars($review->comment); ?></p>
+                            <?php endif; ?>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        </div>
     </div>
 
     <?php else : ?>

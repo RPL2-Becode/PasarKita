@@ -87,10 +87,40 @@ class Admin extends Controller {
 
             if (in_array($new_status, $valid_statuses)) {
                 if ($this->orderModel->updateStatus($order_id, $new_status)) {
+                    // Restore stock if order is cancelled
+                    if ($new_status === 'Dibatalkan') {
+                        $items = $this->orderModel->getOrderItems($order_id);
+                        foreach ($items as $item) {
+                            $this->productModel->increaseStock($item->product_id, $item->quantity);
+                        }
+                    }
                     flash('order_message', 'Status order ' . $order_id . ' berhasil diperbarui ke "' . $new_status . '"', 'bg-green-100 text-green-700');
                 } else {
                     flash('order_message', 'Gagal memperbarui status order', 'bg-red-100 text-red-700');
                 }
+            }
+
+            header('location: /admin/orders');
+        }
+    }
+
+    /**
+     * Update Resi Number (POST) - Phase 2
+     */
+    public function updateresi() {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+
+            $order_id = trim($_POST['order_id']);
+            $shipping_service = trim($_POST['shipping_service']);
+            $resi_number = trim($_POST['resi_number']);
+
+            if (!empty($resi_number) && !empty($shipping_service)) {
+                $this->orderModel->updateResi($order_id, $shipping_service, $resi_number);
+                $this->orderModel->updateStatus($order_id, 'Dikirim');
+                flash('order_message', 'Resi ' . $shipping_service . ' ' . $resi_number . ' berhasil disimpan untuk order ' . $order_id, 'bg-green-100 text-green-700');
+            } else {
+                flash('order_message', 'Nomor resi dan jasa pengiriman tidak boleh kosong!', 'bg-red-100 text-red-700');
             }
 
             header('location: /admin/orders');

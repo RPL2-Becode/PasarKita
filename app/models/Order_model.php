@@ -13,7 +13,7 @@ class Order_model {
     public function createOrder($data) {
         $order_id = 'ORD-' . date('Ymd') . '-' . rand(1000, 9999);
         
-        $this->db->query('INSERT INTO orders (id, buyer_id, total_subtotal, fee_marketplace, fee_shipping, total_payment, status) VALUES(:id, :buyer_id, :subtotal, :fee_m, :fee_s, :total, :status)');
+        $this->db->query('INSERT INTO orders (id, buyer_id, total_subtotal, fee_marketplace, fee_shipping, total_payment, status, shipping_service) VALUES(:id, :buyer_id, :subtotal, :fee_m, :fee_s, :total, :status, :shipping_service)');
         
         $this->db->bind(':id', $order_id);
         $this->db->bind(':buyer_id', $data['buyer_id']);
@@ -22,6 +22,7 @@ class Order_model {
         $this->db->bind(':fee_s', $data['fee_shipping']);
         $this->db->bind(':total', $data['total_payment']);
         $this->db->bind(':status', 'Menunggu Pembayaran');
+        $this->db->bind(':shipping_service', $data['shipping_service'] ?? 'JNE');
 
         if ($this->db->execute()) {
             return $order_id;
@@ -53,6 +54,15 @@ class Order_model {
     public function updateSmartBankTrxId($order_id, $trx_id) {
         $this->db->query('UPDATE orders SET smartbank_trx_id = :trx_id WHERE id = :id');
         $this->db->bind(':trx_id', $trx_id);
+        $this->db->bind(':id', $order_id);
+        return $this->db->execute();
+    }
+
+    // Update Resi & Shipping Service (Phase 2)
+    public function updateResi($order_id, $shipping_service, $resi_number) {
+        $this->db->query('UPDATE orders SET shipping_service = :service, resi_number = :resi WHERE id = :id');
+        $this->db->bind(':service', $shipping_service);
+        $this->db->bind(':resi', $resi_number);
         $this->db->bind(':id', $order_id);
         return $this->db->execute();
     }

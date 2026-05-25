@@ -4,7 +4,7 @@
     <div class="flex items-center justify-between mb-8">
         <div>
             <h1 class="text-3xl font-extrabold text-gray-900">Monitoring Transaksi</h1>
-            <p class="text-gray-500 text-sm mt-1">Pantau dan kelola status order</p>
+            <p class="text-gray-500 text-sm mt-1">Pantau, kelola status order, dan input nomor resi</p>
         </div>
         <div class="flex gap-3">
             <?php if($_SESSION['user_role'] == 'admin') : ?>
@@ -39,6 +39,7 @@
                         <th>Ongkir</th>
                         <th>Total</th>
                         <th>Status</th>
+                        <th>Resi</th>
                         <th>Tanggal</th>
                         <th>Aksi</th>
                     </tr>
@@ -59,31 +60,70 @@
                             $statusClass = 'badge-info';
                             if($order->status == 'Selesai') $statusClass = 'badge-success';
                             elseif($order->status == 'Dibatalkan') $statusClass = 'badge-danger';
+                            elseif($order->status == 'Dikirim') $statusClass = 'badge-success';
                             elseif($order->status == 'Menunggu Konfirmasi' || $order->status == 'Menunggu Pembayaran') $statusClass = 'badge-warning';
                             ?>
                             <span class="badge <?php echo $statusClass; ?>"><?php echo $order->status; ?></span>
                         </td>
+                        <td>
+                            <?php if(!empty($order->resi_number)) : ?>
+                                <div class="text-xs">
+                                    <span class="font-bold text-blue-600"><?= $order->shipping_service; ?></span><br>
+                                    <span class="font-mono text-gray-700"><?= $order->resi_number; ?></span>
+                                </div>
+                            <?php else : ?>
+                                <span class="text-gray-300 text-xs">—</span>
+                            <?php endif; ?>
+                        </td>
                         <td class="text-gray-500 text-xs"><?php echo date('d/m/Y H:i', strtotime($order->created_at)); ?></td>
                         <td>
-                            <form action="/admin/updatestatus" method="POST" class="flex items-center gap-2">
-                                <input type="hidden" name="order_id" value="<?php echo $order->id; ?>">
-                                <select name="status" class="text-xs border border-gray-200 rounded-lg px-2 py-1 outline-none focus:border-primary">
-                                    <?php foreach($statuses as $st) : ?>
-                                    <option value="<?php echo $st; ?>" <?php echo ($order->status == $st) ? 'selected' : ''; ?>><?php echo $st; ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                                <button type="submit" class="bg-primary text-white px-3 py-1 rounded-lg text-xs font-bold hover:bg-orange-700 transition">Update</button>
-                            </form>
+                            <div class="flex flex-col gap-1">
+                                <!-- Status Update -->
+                                <form action="/admin/updatestatus" method="POST" class="flex items-center gap-1">
+                                    <input type="hidden" name="order_id" value="<?php echo $order->id; ?>">
+                                    <select name="status" class="text-xs border border-gray-200 rounded-lg px-2 py-1 outline-none focus:border-primary">
+                                        <?php foreach($statuses as $st) : ?>
+                                        <option value="<?php echo $st; ?>" <?php echo ($order->status == $st) ? 'selected' : ''; ?>><?php echo $st; ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <button type="submit" class="bg-primary text-white px-2 py-1 rounded-lg text-xs font-bold hover:bg-orange-700 transition">✓</button>
+                                </form>
+                                <!-- Resi Input (shown when status is Sedang Dikemas or needs resi) -->
+                                <?php if(in_array($order->status, ['Menunggu Konfirmasi', 'Sedang Dikemas']) || ($order->status == 'Dikirim' && empty($order->resi_number))) : ?>
+                                <button onclick="toggleResiForm('resi-<?= $order->id; ?>')" class="text-xs text-blue-600 hover:underline text-left">
+                                    <i class="fas fa-truck mr-1"></i>Input Resi
+                                </button>
+                                <div id="resi-<?= $order->id; ?>" class="hidden mt-1">
+                                    <form action="/admin/updateresi" method="POST" class="space-y-1">
+                                        <input type="hidden" name="order_id" value="<?= $order->id; ?>">
+                                        <select name="shipping_service" class="w-full text-xs border border-gray-200 rounded px-2 py-1 focus:border-primary outline-none bg-white">
+                                            <option value="LogistikKita">LogistikKita</option>
+                                        </select>
+                                        <input type="text" name="resi_number" placeholder="No. Resi..." class="w-full text-xs border border-gray-200 rounded px-2 py-1 focus:border-primary outline-none">
+                                        <button type="submit" class="w-full bg-blue-600 text-white text-xs font-bold py-1 rounded hover:bg-blue-700 transition">
+                                            <i class="fas fa-paper-plane mr-1"></i>Kirim
+                                        </button>
+                                    </form>
+                                </div>
+                                <?php endif; ?>
+                            </div>
                         </td>
                     </tr>
                     <?php endforeach; ?>
                     <?php if(empty($data['orders'])) : ?>
-                    <tr><td colspan="9" class="text-center py-12 text-gray-400">Tidak ada order yang ditemukan</td></tr>
+                    <tr><td colspan="10" class="text-center py-12 text-gray-400">Tidak ada order yang ditemukan</td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>
         </div>
     </div>
 </div>
+
+<script>
+function toggleResiForm(id) {
+    const el = document.getElementById(id);
+    el.classList.toggle('hidden');
+}
+</script>
 
 <?php require_once '../app/views/templates/footer.php'; ?>
