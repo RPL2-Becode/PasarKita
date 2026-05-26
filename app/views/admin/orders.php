@@ -19,7 +19,7 @@
     <div class="flex flex-wrap gap-2 mb-6">
         <a href="/admin/orders" class="px-4 py-2 rounded-full text-sm font-semibold transition <?php echo empty($data['status_filter']) ? 'bg-primary text-white' : 'bg-white text-gray-600 border border-gray-200 hover:border-primary'; ?>">Semua</a>
         <?php
-        $statuses = ['Menunggu Pembayaran', 'Menunggu Konfirmasi', 'Sedang Dikemas', 'Dikirim', 'Selesai', 'Dibatalkan'];
+        $statuses = ['Menunggu Pembayaran', 'Menunggu Konfirmasi', 'Sedang Dikemas', 'Dikirim', 'Selesai', 'Dibatalkan', 'Pengajuan Pembatalan'];
         foreach($statuses as $st) :
         ?>
         <a href="/admin/orders?status=<?php echo urlencode($st); ?>" class="px-4 py-2 rounded-full text-sm font-semibold transition <?php echo ($data['status_filter'] == $st) ? 'bg-primary text-white' : 'bg-white text-gray-600 border border-gray-200 hover:border-primary'; ?>"><?php echo $st; ?></a>
@@ -60,10 +60,13 @@
                             $statusClass = 'badge-info';
                             if($order->status == 'Selesai') $statusClass = 'badge-success';
                             elseif($order->status == 'Dibatalkan') $statusClass = 'badge-danger';
+                            elseif($order->status == 'Pengajuan Pembatalan') $statusClass = 'bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-bold';
                             elseif($order->status == 'Dikirim') $statusClass = 'badge-success';
                             elseif($order->status == 'Menunggu Konfirmasi' || $order->status == 'Menunggu Pembayaran') $statusClass = 'badge-warning';
+                            
+                            $isCustomBadge = strpos($statusClass, 'bg-') !== false;
                             ?>
-                            <span class="badge <?php echo $statusClass; ?>"><?php echo $order->status; ?></span>
+                            <span class="<?php echo $isCustomBadge ? $statusClass : 'badge ' . $statusClass; ?>"><?php echo $order->status; ?></span>
                         </td>
                         <td>
                             <?php if(!empty($order->resi_number)) : ?>

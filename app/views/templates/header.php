@@ -4,6 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo isset($data['title']) ? $data['title'] : 'PasarKita'; ?></title>
+    
+    <?php
+    // Ensure profile picture is in session if not set
+    if (isset($_SESSION['user_id']) && !array_key_exists('user_profile_picture', $_SESSION)) {
+        $db = new Database();
+        $db->query("SELECT profile_picture FROM users WHERE id = :id");
+        $db->bind(':id', $_SESSION['user_id']);
+        $userRow = $db->single();
+        $_SESSION['user_profile_picture'] = $userRow ? $userRow->profile_picture : null;
+    }
+    ?>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -37,9 +49,10 @@
                         <a href="/admin/dashboard" class="text-sm font-semibold text-gray-600 hover:text-primary transition hidden md:inline"><i class="fas fa-chart-bar mr-1"></i> Dashboard</a>
                     <?php elseif($_SESSION['user_role'] == 'operator') : ?>
                         <a href="/admin/orders" class="text-sm font-semibold text-gray-600 hover:text-primary transition hidden md:inline"><i class="fas fa-list-alt mr-1"></i> Monitoring</a>
-                    <?php elseif($_SESSION['user_role'] == 'pelapak') : ?>
-                        <a href="/products" class="text-sm font-semibold text-gray-600 hover:text-primary transition hidden md:inline"><i class="fas fa-store mr-1"></i> Produk Saya</a>
-                    <?php elseif($_SESSION['user_role'] == 'consumen') : ?>
+                    <?php elseif(strtolower($_SESSION['user_role']) == 'pelapak') : ?>
+                        <a href="/insight" class="text-sm font-semibold text-gray-600 hover:text-primary transition hidden md:inline"><i class="fas fa-chart-line mr-1 text-orange-500"></i> Insight</a>
+                        <a href="/products" class="text-sm font-semibold text-gray-600 hover:text-primary transition hidden md:inline ml-2"><i class="fas fa-store mr-1"></i> Produk Saya</a>
+                    <?php elseif(strtolower($_SESSION['user_role']) == 'consumen') : ?>
                         <a href="/pesanan" class="text-sm font-semibold text-gray-600 hover:text-primary transition hidden md:inline"><i class="fas fa-receipt mr-1"></i> Pesanan Saya</a>
                     <?php endif; ?>
                 <?php endif; ?>
@@ -57,8 +70,21 @@
                     <a href="/users/login" class="px-4 py-2 text-sm font-bold border border-primary text-primary rounded-lg hover:bg-orange-50 transition">Masuk</a>
                     <a href="/users/register" class="px-4 py-2 text-sm font-bold bg-primary text-white rounded-lg hover:bg-orange-600 shadow-md">Daftar</a>
                 <?php else : ?>
-                    <span class="text-sm font-bold bg-orange-100 text-orange-600 px-3 py-1 rounded-full uppercase"><?php echo $_SESSION['user_role']; ?></span>
-                    <a href="/users/logout" class="text-gray-500 hover:text-red-500" title="Logout"><i class="fas fa-sign-out-alt"></i></a>
+                    <?php if(isset($_SESSION['user_balance'])) : ?>
+                        <div class="hidden md:flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-full border border-blue-100" title="Saldo SmartBank">
+                            <i class="fas fa-wallet"></i>
+                            <span class="text-sm font-bold">Rp <?php echo number_format($_SESSION['user_balance'], 0, ',', '.'); ?></span>
+                        </div>
+                    <?php endif; ?>
+                    <a href="/profile" class="text-sm font-bold bg-orange-100 text-orange-600 px-4 py-1.5 rounded-full hover:bg-orange-200 transition flex items-center gap-2" title="Profil Saya">
+                        <?php if(!empty($_SESSION['user_profile_picture'])) : ?>
+                            <img src="/uploads/profile/<?php echo $_SESSION['user_profile_picture']; ?>" alt="Profile" class="w-6 h-6 rounded-full object-cover border border-orange-200">
+                        <?php else : ?>
+                            <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($_SESSION['user_username']); ?>&background=random&color=fff&rounded=true&size=64" alt="Profile" class="w-6 h-6 rounded-full object-cover border border-orange-200">
+                        <?php endif; ?>
+                        <span><?php echo $_SESSION['user_username']; ?></span>
+                    </a>
+                    <a href="/users/logout" class="text-gray-500 hover:text-red-500 ml-2" title="Keluar"><i class="fas fa-sign-out-alt text-xl"></i></a>
                 <?php endif; ?>
             </div>
         </div>

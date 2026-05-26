@@ -106,15 +106,33 @@ class Product_model {
     }
 
     // Get products by seller ID
-    public function getProductsBySeller($seller_id) {
-        $this->db->query('SELECT p.*, c.name as category_name FROM ' . $this->table . ' p LEFT JOIN categories c ON p.category_id = c.id WHERE p.seller_id = :seller_id ORDER BY p.created_at DESC');
+    public function getProductsBySeller($seller_id, $sort = 'terbaru') {
+        $sql = 'SELECT p.*, c.name as category_name, 
+                COALESCE((SELECT AVG(r.rating) FROM reviews r WHERE r.product_id = p.id), 0) as avg_rating,
+                COALESCE((SELECT SUM(oi.quantity) FROM order_items oi JOIN orders o ON oi.order_id = o.id WHERE oi.product_id = p.id AND o.status = \'Selesai\'), 0) as sold_count
+                FROM ' . $this->table . ' p 
+                LEFT JOIN categories c ON p.category_id = c.id 
+                WHERE p.seller_id = :seller_id ';
+        
+        if ($sort == 'terlaris') {
+            $sql .= 'ORDER BY sold_count DESC, p.created_at DESC';
+        } else {
+            $sql .= 'ORDER BY p.created_at DESC';
+        }
+
+        $this->db->query($sql);
         $this->db->bind(':seller_id', $seller_id);
         return $this->db->resultSet();
     }
 
     // Get product by ID
     public function getProductById($id) {
-        $this->db->query('SELECT p.*, c.name as category_name, u.username as seller_name FROM ' . $this->table . ' p LEFT JOIN categories c ON p.category_id = c.id LEFT JOIN users u ON p.seller_id = u.id WHERE p.id = :id');
+        $this->db->query('SELECT p.*, c.name as category_name, u.username as seller_name,
+                          COALESCE((SELECT SUM(oi.quantity) FROM order_items oi JOIN orders o ON oi.order_id = o.id WHERE oi.product_id = p.id AND o.status = \'Selesai\'), 0) as sold_count
+                          FROM ' . $this->table . ' p 
+                          LEFT JOIN categories c ON p.category_id = c.id 
+                          LEFT JOIN users u ON p.seller_id = u.id 
+                          WHERE p.id = :id');
         $this->db->bind(':id', $id);
         return $this->db->single();
     }

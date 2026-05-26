@@ -9,6 +9,14 @@ CREATE TABLE IF NOT EXISTS users (
     username VARCHAR(50) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     role ENUM('consumen', 'admin', 'pelapak', 'operator') NOT NULL,
+    full_name VARCHAR(100) DEFAULT NULL,
+    email VARCHAR(100) DEFAULT NULL,
+    phone VARCHAR(20) DEFAULT NULL,
+    address TEXT DEFAULT NULL,
+    store_name VARCHAR(100) DEFAULT NULL,
+    store_description TEXT DEFAULT NULL,
+    profile_picture VARCHAR(255) DEFAULT NULL,
+    store_banner VARCHAR(255) DEFAULT NULL,
     balance_id VARCHAR(100) DEFAULT NULL COMMENT 'SmartBank balance reference ID',
     balance DECIMAL(15,2) DEFAULT 0.00,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -43,7 +51,7 @@ CREATE TABLE IF NOT EXISTS orders (
     fee_marketplace DECIMAL(15,2),
     fee_shipping DECIMAL(15,2),
     total_payment DECIMAL(15,2),
-    status ENUM('Menunggu Pembayaran', 'Menunggu Konfirmasi', 'Sedang Dikemas', 'Dikirim', 'Selesai', 'Dibatalkan') DEFAULT 'Menunggu Pembayaran',
+    status ENUM('Menunggu Pembayaran', 'Menunggu Konfirmasi', 'Sedang Dikemas', 'Dikirim', 'Selesai', 'Dibatalkan', 'Pengajuan Pembatalan') DEFAULT 'Menunggu Pembayaran',
     smartbank_trx_id VARCHAR(100),
     shipping_service VARCHAR(50) DEFAULT NULL COMMENT 'e.g. JNE, J&T, SiCepat',
     resi_number VARCHAR(100) DEFAULT NULL COMMENT 'Nomor resi pengiriman',
@@ -68,7 +76,7 @@ INSERT INTO categories (name) VALUES ('Makanan'), ('Minuman'), ('Pakaian'), ('Ke
 -- Dummy User (Admin: admin123, Budi: budi123, Juna: juna123, RajaKentang: kentang123)
 INSERT INTO users (username, password, role, balance) VALUES 
 ('admin', '$2y$10$S7x1hbrL4bavEMz2B7O4ceRIixBHHH7SliQ/VmQaIzlmYMu0LU3La', 'admin', 0),
-('budi', '$2y$10$MHBBH5ioHp77Sp0CldFsruKXlLDqN04Xjtp5q/1Se43T5Shkpfoay', 'consumen', 5000000),
+('budi', '$2y$10$MHBBH5ioHp77Sp0CldFsruKXlLDqN04Xjtp5q/1Se43T5Shkpfoay', 'consumen', 2500000),
 ('RajaKentang', '$2y$10$/J3YcnlQl2EnvA08jtL2o.1/svrPMDFjVgOqnRUvkbQ0ek/NVzR3a', 'pelapak', 0),
 ('juna', '$2y$10$juKShCgEaSTiVhCMskzSh.dyDnBZFmZTcrivHdgZh3X1mobF1LnM6', 'operator', 0);
 

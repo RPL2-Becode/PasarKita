@@ -83,7 +83,7 @@ class Admin extends Controller {
             $order_id = trim($_POST['order_id']);
             $new_status = trim($_POST['status']);
 
-            $valid_statuses = ['Menunggu Pembayaran', 'Menunggu Konfirmasi', 'Sedang Dikemas', 'Dikirim', 'Selesai', 'Dibatalkan'];
+            $valid_statuses = ['Menunggu Pembayaran', 'Menunggu Konfirmasi', 'Sedang Dikemas', 'Dikirim', 'Selesai', 'Dibatalkan', 'Pengajuan Pembatalan'];
 
             if (in_array($new_status, $valid_statuses)) {
                 if ($this->orderModel->updateStatus($order_id, $new_status)) {

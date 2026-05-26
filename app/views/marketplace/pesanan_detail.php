@@ -131,6 +131,29 @@
                 <p class="text-sm text-yellow-700 text-center"><i class="fas fa-clock mr-2"></i>Nomor resi sedang diproses oleh penjual.</p>
             </div>
             <?php endif; ?>
+
+            <!-- Action Buttons -->
+            <?php if(in_array($data['order']->status, ['Menunggu Pembayaran', 'Menunggu Konfirmasi', 'Sedang Dikemas'])) : ?>
+            <div class="mt-6">
+                <form action="/pesanan/cancel/<?php echo $data['order']->id; ?>" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin mengajukan pembatalan untuk pesanan ini?');">
+                    <button type="submit" class="w-full bg-white border-2 border-red-100 text-red-500 font-bold py-3 rounded-xl hover:bg-red-50 hover:border-red-200 transition">
+                        <i class="fas fa-times-circle mr-2"></i> Ajukan Pembatalan
+                    </button>
+                </form>
+            </div>
+            <?php elseif($data['order']->status == 'Pengajuan Pembatalan') : ?>
+            <div class="bg-orange-50 rounded-2xl border border-orange-100 p-4 mt-6">
+                <p class="text-sm text-orange-700 text-center font-semibold"><i class="fas fa-info-circle mr-2"></i>Pengajuan pembatalan sedang diproses.</p>
+            </div>
+            <?php elseif($data['order']->status == 'Dikirim') : ?>
+            <div class="mt-6">
+                <form action="/pesanan/complete/<?php echo $data['order']->id; ?>" method="POST" onsubmit="return confirm('Apakah Anda yakin telah menerima pesanan ini dengan baik?');">
+                    <button type="submit" class="w-full bg-primary text-white font-bold py-3 rounded-xl hover:bg-orange-700 transition shadow-sm">
+                        <i class="fas fa-check-circle mr-2"></i> Pesanan Diterima
+                    </button>
+                </form>
+            </div>
+            <?php endif; ?>
         </div>
     </div>
 </div>

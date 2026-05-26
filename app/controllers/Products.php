@@ -20,9 +20,13 @@ class Products extends Controller {
     public function index() {
         // Get products by seller
         $products = $this->productModel->getProductsBySeller($_SESSION['user_id']);
+        $userModel = $this->model('User_model');
+        $seller = $userModel->getUserById($_SESSION['user_id']);
 
         $data = [
-            'products' => $products
+            'title' => 'Dashboard Pelapak - PasarKita',
+            'products' => $products,
+            'seller' => $seller
         ];
 
         $this->view('products/index', $data);

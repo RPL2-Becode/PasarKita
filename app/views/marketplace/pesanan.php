@@ -33,28 +33,66 @@
                     elseif($order->status == 'Selesai') { $status_color = 'bg-green-100 text-green-700'; $status_icon = 'fa-check-circle'; }
                     elseif($order->status == 'Dibatalkan') { $status_color = 'bg-red-100 text-red-700'; $status_icon = 'fa-times-circle'; }
                 ?>
-                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 hover:shadow-md transition">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-50 pb-4 mb-4 gap-4">
-                        <div>
-                            <div class="flex items-center gap-3 mb-1">
-                                <span class="text-xs font-bold text-gray-500 uppercase tracking-wider"><i class="fas fa-shopping-bag mr-1"></i> Belanja</span>
-                                <span class="text-xs text-gray-400"><?php echo date('d M Y, H:i', strtotime($order->created_at)); ?></span>
-                                <span class="text-[10px] <?php echo $status_color; ?> px-2 py-0.5 rounded-full font-bold uppercase tracking-wider"><i class="fas <?php echo $status_icon; ?> mr-1"></i> <?php echo $order->status; ?></span>
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm mb-6 hover:shadow-md transition overflow-hidden">
+                    <!-- Items -->
+                    <?php if(!empty($order->items)): ?>
+                        <?php foreach($order->items as $index => $item) : ?>
+                            <?php if($index == 0) : ?>
+                                <div class="bg-gray-50 px-6 py-4 border-b border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                                    <div class="flex items-center gap-3">
+                                        <span class="font-extrabold text-gray-800 text-sm uppercase flex items-center"><i class="fas fa-store text-gray-400 mr-2"></i> <?php echo !empty($item->store_name) ? $item->store_name : $item->seller_name; ?></span>
+                                        <button class="bg-primary text-white text-[10px] font-bold px-2.5 py-1 rounded flex items-center gap-1 hover:bg-orange-600 transition"><i class="fas fa-comment-alt"></i> Chat</button>
+                                        <a href="/toko/<?php echo $item->seller_name; ?>" class="border border-gray-300 text-gray-600 text-[10px] font-bold px-2.5 py-1 rounded flex items-center gap-1 hover:bg-gray-100 transition"><i class="fas fa-store"></i> Kunjungi Toko</a>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs text-primary flex items-center gap-1"><i class="fas fa-truck"></i> <?php echo $order->status == 'Dikirim' ? 'Pesanan tiba di alamat tujuan.' : 'Status pesanan: ' . $order->status; ?></span>
+                                        <span class="text-xs font-bold <?php echo strpos($status_color, 'text-') !== false ? explode(' ', $status_color)[1] : 'text-gray-500'; ?> uppercase border-l pl-2 ml-1 border-gray-300"><?php echo $order->status; ?></span>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+
+                            <div class="px-6 py-4 flex gap-4 border-b border-gray-50">
+                                <img src="<?php echo $item->image_url; ?>" class="w-20 h-20 object-cover rounded border border-gray-100">
+                                <div class="flex-grow">
+                                    <h4 class="text-gray-800 text-base font-medium"><?php echo $item->product_name; ?></h4>
+                                    <p class="text-xs text-gray-500 mt-1">Variasi: Default</p>
+                                    <p class="text-sm text-gray-600 mt-1">x<?php echo $item->quantity; ?></p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-medium text-gray-800">Rp<?php echo number_format($item->price_at_purchase, 0, ',', '.'); ?></p>
+                                </div>
                             </div>
-                            <h4 class="font-mono text-primary font-bold text-lg"><?php echo $order->id; ?></h4>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+
+                    <!-- Footer Total & Actions -->
+                    <div class="bg-white px-6 py-4 flex flex-col md:flex-row justify-between items-end md:items-center gap-4">
+                        <div class="text-xs text-gray-500">
+                            <p class="mb-1">Tanggal: <?php echo date('d-m-Y H:i', strtotime($order->created_at)); ?></p>
+                            <?php if(!empty($order->smartbank_trx_id)): ?>
+                            <p class="flex items-center gap-1 text-[10px]"><i class="fas fa-info-circle text-blue-500"></i> SmartBank Trx ID: <strong class="font-mono"><?php echo $order->smartbank_trx_id; ?></strong></p>
+                            <?php endif; ?>
                         </div>
-                        <div class="text-left md:text-right">
-                            <p class="text-xs text-gray-500 mb-1">Total Pembayaran</p>
-                            <p class="text-xl font-extrabold text-gray-900">Rp <?php echo number_format($order->total_payment, 0, ',', '.'); ?></p>
+                        <div class="flex flex-col items-end gap-4 w-full md:w-auto">
+                            <div class="flex items-center gap-3">
+                                <span class="text-sm text-gray-800">Total Pesanan:</span>
+                                <span class="text-2xl font-normal text-primary">Rp<?php echo number_format($order->total_payment, 0, ',', '.'); ?></span>
+                            </div>
+                            <div class="flex flex-wrap items-center justify-end gap-2 w-full">
+                                <?php if($order->status == 'Menunggu Pembayaran' || $order->status == 'Menunggu Konfirmasi' || $order->status == 'Sedang Dikemas') : ?>
+                                    <form action="/pesanan/cancel/<?php echo $order->id; ?>" method="POST" class="inline m-0">
+                                        <button type="submit" class="bg-white border border-gray-300 text-gray-700 text-sm px-6 py-2 rounded hover:bg-gray-50 transition w-full md:w-auto">Batalkan Pesanan</button>
+                                    </form>
+                                <?php elseif($order->status == 'Dikirim') : ?>
+                                    <form action="/pesanan/complete/<?php echo $order->id; ?>" method="POST" class="inline m-0">
+                                        <button type="submit" class="bg-primary text-white text-sm px-6 py-2 rounded hover:bg-orange-600 transition shadow-sm w-full md:w-auto">Pesanan Selesai</button>
+                                    </form>
+                                    <button class="bg-white border border-gray-300 text-gray-700 text-sm px-6 py-2 rounded hover:bg-gray-50 transition w-full md:w-auto">Ajukan Pengembalian</button>
+                                <?php endif; ?>
+                                <button class="bg-white border border-gray-300 text-gray-700 text-sm px-6 py-2 rounded hover:bg-gray-50 transition w-full md:w-auto">Hubungi Penjual</button>
+                                <a href="/pesanan/detail/<?php echo $order->id; ?>" class="bg-white border border-gray-300 text-gray-700 text-sm px-6 py-2 rounded hover:bg-gray-50 transition text-center w-full md:w-auto">Lihat Detail</a>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="flex items-center justify-between mt-4 bg-gray-50 p-3 rounded-xl border border-gray-100">
-                        <div class="flex items-center gap-2 text-sm text-gray-600">
-                            <i class="fas fa-info-circle text-blue-500"></i>
-                            <span>SmartBank Trx ID: <strong class="font-mono text-gray-800"><?php echo $order->smartbank_trx_id ?? 'N/A'; ?></strong></span>
-                        </div>
-                        <a href="/pesanan/detail/<?php echo $order->id; ?>" class="text-sm font-bold text-primary hover:text-orange-700 bg-orange-100 hover:bg-orange-200 px-4 py-1.5 rounded-lg transition">Lihat Detail</a>
                     </div>
                 </div>
             <?php endforeach; ?>

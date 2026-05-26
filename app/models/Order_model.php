@@ -89,7 +89,7 @@ class Order_model {
 
     // Get order items
     public function getOrderItems($order_id) {
-        $this->db->query('SELECT oi.*, p.name as product_name, p.image_url FROM order_items oi LEFT JOIN products p ON oi.product_id = p.id WHERE oi.order_id = :order_id');
+        $this->db->query('SELECT oi.*, p.seller_id, p.name as product_name, p.image_url, u.store_name, u.username as seller_name FROM order_items oi LEFT JOIN products p ON oi.product_id = p.id LEFT JOIN users u ON p.seller_id = u.id WHERE oi.order_id = :order_id');
         $this->db->bind(':order_id', $order_id);
         return $this->db->resultSet();
     }
@@ -125,6 +125,27 @@ class Order_model {
         $this->db->bind(':status', $status);
         $result = $this->db->single();
         return $result->total ?? 0;
+    }
+
+    // --- Seller Insight Methods ---
+    public function getSellerRevenue($seller_id) {
+        $this->db->query("SELECT SUM(oi.price_at_purchase * oi.quantity) as total FROM order_items oi JOIN products p ON oi.product_id = p.id JOIN orders o ON oi.order_id = o.id WHERE p.seller_id = :seller_id AND o.status IN ('Selesai', 'Dikirim')");
+        $this->db->bind(':seller_id', $seller_id);
+        $result = $this->db->single();
+        return $result->total ?? 0;
+    }
+
+    public function getSellerOrderCount($seller_id) {
+        $this->db->query("SELECT COUNT(DISTINCT o.id) as total FROM order_items oi JOIN products p ON oi.product_id = p.id JOIN orders o ON oi.order_id = o.id WHERE p.seller_id = :seller_id AND o.status != 'Dibatalkan' AND o.status != 'Menunggu Pembayaran'");
+        $this->db->bind(':seller_id', $seller_id);
+        $result = $this->db->single();
+        return $result->total ?? 0;
+    }
+
+    public function getSellerTopProducts($seller_id) {
+        $this->db->query("SELECT p.name, p.image_url, SUM(oi.quantity) as sold_count, SUM(oi.price_at_purchase * oi.quantity) as revenue FROM order_items oi JOIN products p ON oi.product_id = p.id JOIN orders o ON oi.order_id = o.id WHERE p.seller_id = :seller_id AND o.status IN ('Selesai', 'Dikirim') GROUP BY p.id ORDER BY sold_count DESC LIMIT 5");
+        $this->db->bind(':seller_id', $seller_id);
+        return $this->db->resultSet();
     }
 }
 ?>

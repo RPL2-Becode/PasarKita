@@ -113,6 +113,52 @@
         </div>
         <?php endif; ?>
 
+        <!-- Store Information Section -->
+        <?php if(isset($data['seller']) && $data['seller']) : $seller = $data['seller']; ?>
+        <div class="border-t border-gray-100 p-8 bg-gray-50">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                <!-- Store Profile -->
+                <div class="flex items-center gap-4">
+                    <div class="w-16 h-16 bg-white rounded-full border-2 border-gray-200 overflow-hidden flex items-center justify-center shrink-0">
+                        <?php if(!empty($seller->profile_picture)): ?>
+                            <img src="/uploads/profile/<?php echo $seller->profile_picture; ?>" alt="<?php echo $seller->store_name ?? $seller->username; ?>" class="w-full h-full object-cover">
+                        <?php else: ?>
+                            <i class="fas fa-store text-2xl text-gray-400"></i>
+                        <?php endif; ?>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg text-gray-800"><?php echo !empty($seller->store_name) ? $seller->store_name : $seller->username; ?></h3>
+                        <p class="text-sm text-green-500 mb-2"><i class="fas fa-circle text-[10px] mr-1"></i> Online</p>
+                        <div class="flex gap-2">
+                            <button class="px-3 py-1.5 border border-primary text-primary text-xs font-semibold rounded hover:bg-orange-50 transition">
+                                <i class="fas fa-comment-dots mr-1"></i> Chat Sekarang
+                            </button>
+                            <a href="/toko/<?php echo $seller->username; ?>" class="px-3 py-1.5 border border-gray-300 text-gray-600 text-xs font-semibold rounded hover:bg-gray-100 transition">
+                                <i class="fas fa-store mr-1"></i> Kunjungi Toko
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Store Stats -->
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-2 text-sm text-gray-600 border-l border-gray-200 pl-6 w-full md:w-auto">
+                    <div class="flex justify-between md:flex-col gap-2 md:gap-1">
+                        <span>Penilaian</span>
+                        <span class="font-bold text-primary"><?php echo $data['seller_stats']['avg_rating']; ?></span>
+                    </div>
+                    <div class="flex justify-between md:flex-col gap-2 md:gap-1">
+                        <span>Produk</span>
+                        <span class="font-bold text-primary"><?php echo $data['seller_stats']['total_products']; ?></span>
+                    </div>
+                    <div class="flex justify-between md:flex-col gap-2 md:gap-1">
+                        <span>Bergabung</span>
+                        <span class="font-bold text-primary"><?php echo date('Y', strtotime($seller->created_at)); ?></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
+
         <!-- Reviews Section -->
         <div class="border-t border-gray-100 p-8">
             <h2 class="text-lg font-bold text-gray-800 mb-6"><i class="fas fa-star mr-2 text-yellow-400"></i>Ulasan Pembeli</h2>

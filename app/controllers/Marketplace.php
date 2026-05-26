@@ -65,6 +65,30 @@ class Marketplace extends Controller {
     public function detail($id) {
         $product = $this->productModel->getProductById($id);
         $reviewModel = $this->model('Review_model');
+        $userModel = $this->model('User_model');
+        
+        $seller = null;
+        $seller_stats = ['total_products' => '--', 'avg_rating' => '--'];
+        
+        if ($product && !empty($product->seller_id)) {
+            $seller = $userModel->getUserById($product->seller_id);
+            
+            // Calculate seller stats
+            $seller_products = $this->productModel->getProductsBySeller($product->seller_id);
+            $seller_stats['total_products'] = count($seller_products);
+            
+            $total_rating = 0;
+            $rating_count = 0;
+            foreach($seller_products as $sp) {
+                if ($sp->avg_rating > 0) {
+                    $total_rating += $sp->avg_rating;
+                    $rating_count++;
+                }
+            }
+            if ($rating_count > 0) {
+                $seller_stats['avg_rating'] = number_format($total_rating / $rating_count, 1);
+            }
+        }
         
         $in_wishlist = false;
         if (isset($_SESSION['user_id'])) {
@@ -75,6 +99,8 @@ class Marketplace extends Controller {
         $data = [
             'title' => ($product ? $product->name : 'Produk') . ' - PasarKita',
             'product' => $product,
+            'seller' => $seller,
+            'seller_stats' => $seller_stats,
             'in_wishlist' => $in_wishlist,
             'reviews' => $reviewModel->getReviewsByProductId($id),
             'ratingStats' => $reviewModel->getProductRatingStats($id)

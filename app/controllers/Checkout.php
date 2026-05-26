@@ -64,7 +64,8 @@ class Checkout extends Controller {
                 } else {
                     // Payment failed - cancel order
                     $this->orderModel->updateStatus($order_id, 'Dibatalkan');
-                    flash('cart_message', 'Pembayaran gagal. Silakan coba lagi.', 'bg-red-100 text-red-700');
+                    $error_msg = isset($smartbank_result['message']) ? $smartbank_result['message'] : 'Pembayaran gagal. Silakan coba lagi.';
+                    flash('cart_message', $error_msg, 'bg-red-100 text-red-700');
                     header('location: /cart');
                 }
             } else {
@@ -80,40 +81,22 @@ class Checkout extends Controller {
      * Currently: simulation that generates a mock transaction ID
      */
     private function integrateSmartBankPayment($order_id, $amount) {
-        // ============================================
-        // PRODUCTION: Uncomment below for real API call
-        // ============================================
-        // $smartbank_url = 'https://smartbank-api.example.com/api/payment';
-        // $payload = json_encode([
-        //     'merchant_id' => 'PASARKITA-001',
-        //     'order_id' => $order_id,
-        //     'amount' => $amount,
-        //     'callback_url' => 'https://pasarkita.com/api/?endpoint=payment_callback'
-        // ]);
-        // 
-        // $ch = curl_init($smartbank_url);
-        // curl_setopt($ch, CURLOPT_POST, true);
-        // curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
-        // curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json', 'Authorization: Bearer YOUR_JWT_TOKEN']);
-        // curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        // $response = curl_exec($ch);
-        // curl_close($ch);
-        // 
-        // $result = json_decode($response, true);
-        // return [
-        //     'success' => $result['status'] === 'success',
-        //     'trx_id' => $result['transaction_id'] ?? null
-        // ];
-
-        // ============================================
-        // SIMULATION MODE
-        // ============================================
-        $trx_id = 'SB-' . date('Ymd') . '-' . strtoupper(substr(md5($order_id . time()), 0, 8));
+        $userModel = $this->model('User_model');
+        $user_id = $_SESSION['user_id'];
         
-        return [
-            'success' => true,
-            'trx_id' => $trx_id
-        ];
+        // Attempt to deduct balance
+        if ($userModel->deductBalance($user_id, $amount)) {
+            $trx_id = 'SB-' . date('Ymd') . '-' . strtoupper(substr(md5($order_id . time()), 0, 8));
+            return [
+                'success' => true,
+                'trx_id' => $trx_id
+            ];
+        } else {
+            return [
+                'success' => false,
+                'message' => 'Saldo SmartBank Anda tidak mencukupi untuk pembayaran ini.'
+            ];
+        }
     }
 }
 ?>
