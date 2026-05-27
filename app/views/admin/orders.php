@@ -19,7 +19,7 @@
     <div class="flex flex-wrap gap-2 mb-6">
         <a href="/admin/orders" class="px-4 py-2 rounded-full text-sm font-semibold transition <?php echo empty($data['status_filter']) ? 'bg-primary text-white' : 'bg-white text-gray-600 border border-gray-200 hover:border-primary'; ?>">Semua</a>
         <?php
-        $statuses = ['Menunggu Pembayaran', 'Menunggu Konfirmasi', 'Sedang Dikemas', 'Dikirim', 'Selesai', 'Dibatalkan', 'Pengajuan Pembatalan'];
+        $statuses = ['Menunggu Pembayaran', 'Menunggu Konfirmasi', 'Sedang Dikemas', 'Diserahkan ke Kurir', 'Dikirim', 'Selesai', 'Dibatalkan', 'Pengajuan Pembatalan', 'Pengajuan Pengembalian', 'Dikembalikan'];
         foreach($statuses as $st) :
         ?>
         <a href="/admin/orders?status=<?php echo urlencode($st); ?>" class="px-4 py-2 rounded-full text-sm font-semibold transition <?php echo ($data['status_filter'] == $st) ? 'bg-primary text-white' : 'bg-white text-gray-600 border border-gray-200 hover:border-primary'; ?>"><?php echo $st; ?></a>
@@ -38,7 +38,7 @@
                         <th>Fee (2%)</th>
                         <th>Ongkir</th>
                         <th>Total</th>
-                        <th>Status</th>
+                        <th>Status & Alasan</th>
                         <th>Resi</th>
                         <th>Tanggal</th>
                         <th>Aksi</th>
@@ -59,14 +59,20 @@
                             <?php
                             $statusClass = 'badge-info';
                             if($order->status == 'Selesai') $statusClass = 'badge-success';
-                            elseif($order->status == 'Dibatalkan') $statusClass = 'badge-danger';
-                            elseif($order->status == 'Pengajuan Pembatalan') $statusClass = 'bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-bold';
+                            elseif($order->status == 'Dibatalkan' || $order->status == 'Dikembalikan') $statusClass = 'badge-danger';
+                            elseif($order->status == 'Pengajuan Pembatalan' || $order->status == 'Pengajuan Pengembalian') $statusClass = 'bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-bold';
                             elseif($order->status == 'Dikirim') $statusClass = 'badge-success';
+                            elseif($order->status == 'Diserahkan ke Kurir') $statusClass = 'bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-bold border border-purple-200';
                             elseif($order->status == 'Menunggu Konfirmasi' || $order->status == 'Menunggu Pembayaran') $statusClass = 'badge-warning';
                             
                             $isCustomBadge = strpos($statusClass, 'bg-') !== false;
                             ?>
                             <span class="<?php echo $isCustomBadge ? $statusClass : 'badge ' . $statusClass; ?>"><?php echo $order->status; ?></span>
+                            <?php if(!empty($order->cancellation_reason)) : ?>
+                            <div class="mt-2 text-[10px] text-gray-500 bg-gray-50 p-1 rounded border border-gray-100 max-w-[150px] truncate" title="<?= htmlspecialchars($order->cancellation_reason) ?>">
+                                <i class="fas fa-comment-dots text-gray-400 mr-1"></i><?= htmlspecialchars($order->cancellation_reason) ?>
+                            </div>
+                            <?php endif; ?>
                         </td>
                         <td>
                             <?php if(!empty($order->resi_number)) : ?>
@@ -91,8 +97,8 @@
                                     </select>
                                     <button type="submit" class="bg-primary text-white px-2 py-1 rounded-lg text-xs font-bold hover:bg-orange-700 transition">✓</button>
                                 </form>
-                                <!-- Resi Input (shown when status is Sedang Dikemas or needs resi) -->
-                                <?php if(in_array($order->status, ['Menunggu Konfirmasi', 'Sedang Dikemas']) || ($order->status == 'Dikirim' && empty($order->resi_number))) : ?>
+                                <!-- Resi Input -->
+                                <?php if(in_array($order->status, ['Menunggu Konfirmasi', 'Sedang Dikemas', 'Diserahkan ke Kurir']) || ($order->status == 'Dikirim' && empty($order->resi_number))) : ?>
                                 <button onclick="toggleResiForm('resi-<?= $order->id; ?>')" class="text-xs text-blue-600 hover:underline text-left">
                                     <i class="fas fa-truck mr-1"></i>Input Resi
                                 </button>

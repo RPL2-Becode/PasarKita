@@ -7,6 +7,14 @@ class Order_model {
 
     public function __construct() {
         $this->db = new Database();
+        
+        // Self-healing: ensure status enum has all values and cancellation_reason exists
+        try {
+            $this->db->query("ALTER TABLE orders MODIFY COLUMN status ENUM('Menunggu Pembayaran', 'Menunggu Konfirmasi', 'Sedang Dikemas', 'Diserahkan ke Kurir', 'Dikirim', 'Selesai', 'Dibatalkan', 'Pengajuan Pembatalan', 'Pengajuan Pengembalian', 'Dikembalikan') DEFAULT 'Menunggu Pembayaran'");
+            $this->db->execute();
+            $this->db->query("ALTER TABLE orders ADD COLUMN cancellation_reason TEXT DEFAULT NULL");
+            $this->db->execute();
+        } catch (Exception $e) { }
     }
 
     // Create Order
@@ -46,6 +54,15 @@ class Order_model {
     public function updateStatus($order_id, $status) {
         $this->db->query('UPDATE orders SET status = :status WHERE id = :id');
         $this->db->bind(':status', $status);
+        $this->db->bind(':id', $order_id);
+        return $this->db->execute();
+    }
+
+    // Update Order Status and Reason
+    public function updateStatusAndReason($order_id, $status, $reason) {
+        $this->db->query('UPDATE orders SET status = :status, cancellation_reason = :reason WHERE id = :id');
+        $this->db->bind(':status', $status);
+        $this->db->bind(':reason', $reason);
         $this->db->bind(':id', $order_id);
         return $this->db->execute();
     }
@@ -145,6 +162,33 @@ class Order_model {
     public function getSellerTopProducts($seller_id) {
         $this->db->query("SELECT p.name, p.image_url, SUM(oi.quantity) as sold_count, SUM(oi.price_at_purchase * oi.quantity) as revenue FROM order_items oi JOIN products p ON oi.product_id = p.id JOIN orders o ON oi.order_id = o.id WHERE p.seller_id = :seller_id AND o.status IN ('Selesai', 'Dikirim') GROUP BY p.id ORDER BY sold_count DESC LIMIT 5");
         $this->db->bind(':seller_id', $seller_id);
+        return $this->db->resultSet();
+    }
+
+    // Get orders containing products belonging to a specific seller
+    public function getOrdersBySeller($seller_id) {
+        $this->db->query('SELECT DISTINCT o.*, u.username as buyer_name 
+                          FROM orders o 
+                          JOIN order_items oi ON o.id = oi.order_id 
+                          JOIN products p ON oi.product_id = p.id 
+                          LEFT JOIN users u ON o.buyer_id = u.id 
+                          WHERE p.seller_id = :seller_id 
+                          ORDER BY o.created_at DESC');
+        $this->db->bind(':seller_id', $seller_id);
+        return $this->db->resultSet();
+    }
+
+    // Get orders containing products belonging to a specific seller with a status filter
+    public function getOrdersBySellerAndStatus($seller_id, $status) {
+        $this->db->query('SELECT DISTINCT o.*, u.username as buyer_name 
+                          FROM orders o 
+                          JOIN order_items oi ON o.id = oi.order_id 
+                          JOIN products p ON oi.product_id = p.id 
+                          LEFT JOIN users u ON o.buyer_id = u.id 
+                          WHERE p.seller_id = :seller_id AND o.status = :status 
+                          ORDER BY o.created_at DESC');
+        $this->db->bind(':seller_id', $seller_id);
+        $this->db->bind(':status', $status);
         return $this->db->resultSet();
     }
 }

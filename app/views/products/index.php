@@ -42,9 +42,14 @@
     <!-- Products List Section -->
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-xl font-bold text-gray-800">Daftar Produk Saya</h2>
-        <a href="/products/add" class="bg-primary text-white px-5 py-2.5 rounded-lg font-bold hover:bg-orange-700 transition shadow-sm flex items-center gap-2 text-sm">
-            <i class="fas fa-plus"></i> Tambah Produk Baru
-        </a>
+        <div class="flex gap-2">
+            <a href="/products/orders" class="px-5 py-2.5 border border-primary text-primary rounded-lg font-bold hover:bg-orange-50 transition shadow-sm flex items-center gap-2 text-sm">
+                <i class="fas fa-receipt text-orange-500"></i> Kelola Pesanan Masuk
+            </a>
+            <a href="/products/add" class="bg-primary text-white px-5 py-2.5 rounded-lg font-bold hover:bg-orange-700 transition shadow-sm flex items-center gap-2 text-sm">
+                <i class="fas fa-plus"></i> Tambah Produk Baru
+            </a>
+        </div>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

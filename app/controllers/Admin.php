@@ -83,15 +83,22 @@ class Admin extends Controller {
             $order_id = trim($_POST['order_id']);
             $new_status = trim($_POST['status']);
 
-            $valid_statuses = ['Menunggu Pembayaran', 'Menunggu Konfirmasi', 'Sedang Dikemas', 'Dikirim', 'Selesai', 'Dibatalkan', 'Pengajuan Pembatalan'];
+            $valid_statuses = ['Menunggu Pembayaran', 'Menunggu Konfirmasi', 'Sedang Dikemas', 'Diserahkan ke Kurir', 'Dikirim', 'Selesai', 'Dibatalkan', 'Pengajuan Pembatalan', 'Pengajuan Pengembalian', 'Dikembalikan'];
 
             if (in_array($new_status, $valid_statuses)) {
                 if ($this->orderModel->updateStatus($order_id, $new_status)) {
-                    // Restore stock if order is cancelled
-                    if ($new_status === 'Dibatalkan') {
+                    // Restore stock and refund if order is cancelled or returned
+                    if ($new_status === 'Dibatalkan' || $new_status === 'Dikembalikan') {
                         $items = $this->orderModel->getOrderItems($order_id);
                         foreach ($items as $item) {
                             $this->productModel->increaseStock($item->product_id, $item->quantity);
+                        }
+                        
+                        $order = $this->orderModel->getOrderById($order_id);
+                        if ($order) {
+                            // Refund to buyer minus marketplace fee
+                            $refund_amount = $order->total_payment - $order->fee_marketplace;
+                            $this->userModel->addBalance($order->buyer_id, $refund_amount);
                         }
                     }
                     flash('order_message', 'Status order ' . $order_id . ' berhasil diperbarui ke "' . $new_status . '"', 'bg-green-100 text-green-700');

@@ -13,6 +13,12 @@ class Products extends Controller {
             exit();
         }
 
+        // Restrict to pelapak
+        if (strtolower($_SESSION['user_role']) != 'pelapak') {
+            header('location: /home');
+            exit();
+        }
+
         $this->productModel = $this->model('Product_model');
     }
 
@@ -175,6 +181,93 @@ class Products extends Controller {
                     header('location: /products');
                 }
             }
+        }
+    }
+
+    // List incoming orders containing products owned by the logged-in pelapak
+    public function orders() {
+        // Self-healing database check: Alter table to add 'Diserahkan ke Kurir' if not already done
+        try {
+            $db = new Database();
+            $db->query("ALTER TABLE orders MODIFY COLUMN status ENUM('Menunggu Pembayaran', 'Menunggu Konfirmasi', 'Sedang Dikemas', 'Diserahkan ke Kurir', 'Dikirim', 'Selesai', 'Dibatalkan', 'Pengajuan Pembatalan') DEFAULT 'Menunggu Pembayaran'");
+            $db->execute();
+        } catch (Exception $e) {
+            // Silence if already exists or fails
+        }
+
+        $orderModel = $this->model('Order_model');
+        $userModel = $this->model('User_model');
+        
+        $status_filter = isset($_GET['status']) ? $_GET['status'] : '';
+        
+        if (!empty($status_filter)) {
+            $orders = $orderModel->getOrdersBySellerAndStatus($_SESSION['user_id'], $status_filter);
+        } else {
+            $orders = $orderModel->getOrdersBySeller($_SESSION['user_id']);
+        }
+        
+        // Fetch items and filter them to only show the seller's own products
+        foreach($orders as $order) {
+            $allItems = $orderModel->getOrderItems($order->id);
+            $order->items = array_filter($allItems, function($item) {
+                return $item->seller_id == $_SESSION['user_id'];
+            });
+        }
+        
+        $seller = $userModel->getUserById($_SESSION['user_id']);
+
+        $data = [
+            'title' => 'Kelola Pesanan Masuk - PasarKita',
+            'orders' => $orders,
+            'status_filter' => $status_filter,
+            'seller' => $seller
+        ];
+
+        $this->view('products/orders', $data);
+    }
+
+    // Update order status (Specifically "Sedang Dikemas" and "Diserahkan ke Kurir") for pelapak
+    public function update_order_status() {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+
+            $order_id = trim($_POST['order_id']);
+            $new_status = trim($_POST['status']);
+            
+            $orderModel = $this->model('Order_model');
+            $items = $orderModel->getOrderItems($order_id);
+            
+            // Security verification: Check if order contains products belonging to this seller
+            $belongsToSeller = false;
+            foreach ($items as $item) {
+                if ($item->seller_id == $_SESSION['user_id']) {
+                    $belongsToSeller = true;
+                    break;
+                }
+            }
+
+            if (!$belongsToSeller) {
+                flash('order_message', 'Anda tidak berwenang mengelola pesanan ini', 'bg-red-100 text-red-700 border-red-400 border');
+                header('location: /products/orders');
+                exit();
+            }
+
+            $valid_statuses = ['Sedang Dikemas', 'Diserahkan ke Kurir'];
+            
+            if (in_array($new_status, $valid_statuses)) {
+                if ($orderModel->updateStatus($order_id, $new_status)) {
+                    $msg = $new_status == 'Sedang Dikemas' 
+                        ? 'Pesanan ' . $order_id . ' berhasil dikonfirmasi dan status diperbarui ke "' . $new_status . '"!'
+                        : 'Pesanan ' . $order_id . ' berhasil diserahkan ke jasa pengiriman!';
+                    flash('order_message', $msg, 'bg-green-100 text-green-700 border-green-400 border');
+                } else {
+                    flash('order_message', 'Gagal memperbarui status pesanan.', 'bg-red-100 text-red-700 border-red-400 border');
+                }
+            } else {
+                flash('order_message', 'Status pembaruan tidak valid.', 'bg-red-100 text-red-700 border-red-400 border');
+            }
+
+            header('location: /products/orders');
         }
     }
 }

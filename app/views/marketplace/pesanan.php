@@ -31,7 +31,8 @@
                     elseif($order->status == 'Sedang Dikemas') { $status_color = 'bg-purple-100 text-purple-700'; $status_icon = 'fa-box'; }
                     elseif($order->status == 'Dikirim') { $status_color = 'bg-indigo-100 text-indigo-700'; $status_icon = 'fa-truck'; }
                     elseif($order->status == 'Selesai') { $status_color = 'bg-green-100 text-green-700'; $status_icon = 'fa-check-circle'; }
-                    elseif($order->status == 'Dibatalkan') { $status_color = 'bg-red-100 text-red-700'; $status_icon = 'fa-times-circle'; }
+                    elseif($order->status == 'Dibatalkan' || $order->status == 'Dikembalikan') { $status_color = 'bg-red-100 text-red-700'; $status_icon = 'fa-times-circle'; }
+                    elseif($order->status == 'Pengajuan Pembatalan' || $order->status == 'Pengajuan Pengembalian') { $status_color = 'bg-orange-100 text-orange-700'; $status_icon = 'fa-info-circle'; }
                 ?>
                 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm mb-6 hover:shadow-md transition overflow-hidden">
                     <!-- Items -->
@@ -80,14 +81,14 @@
                             </div>
                             <div class="flex flex-wrap items-center justify-end gap-2 w-full">
                                 <?php if($order->status == 'Menunggu Pembayaran' || $order->status == 'Menunggu Konfirmasi' || $order->status == 'Sedang Dikemas') : ?>
-                                    <form action="/pesanan/cancel/<?php echo $order->id; ?>" method="POST" class="inline m-0">
-                                        <button type="submit" class="bg-white border border-gray-300 text-gray-700 text-sm px-6 py-2 rounded hover:bg-gray-50 transition w-full md:w-auto">Batalkan Pesanan</button>
-                                    </form>
-                                <?php elseif($order->status == 'Dikirim') : ?>
+                                    <a href="/pesanan/detail/<?php echo $order->id; ?>" class="bg-white border border-gray-300 text-gray-700 text-sm px-6 py-2 rounded hover:bg-gray-50 transition text-center w-full md:w-auto">Batalkan Pesanan</a>
+                                <?php elseif($order->status == 'Dikirim' || $order->status == 'Selesai') : ?>
+                                    <?php if($order->status == 'Dikirim') : ?>
                                     <form action="/pesanan/complete/<?php echo $order->id; ?>" method="POST" class="inline m-0">
                                         <button type="submit" class="bg-primary text-white text-sm px-6 py-2 rounded hover:bg-orange-600 transition shadow-sm w-full md:w-auto">Pesanan Selesai</button>
                                     </form>
-                                    <button class="bg-white border border-gray-300 text-gray-700 text-sm px-6 py-2 rounded hover:bg-gray-50 transition w-full md:w-auto">Ajukan Pengembalian</button>
+                                    <?php endif; ?>
+                                    <a href="/pesanan/detail/<?php echo $order->id; ?>" class="bg-white border border-gray-300 text-gray-700 text-sm px-6 py-2 rounded hover:bg-gray-50 transition text-center w-full md:w-auto">Ajukan Pengembalian</a>
                                 <?php endif; ?>
                                 <button class="bg-white border border-gray-300 text-gray-700 text-sm px-6 py-2 rounded hover:bg-gray-50 transition w-full md:w-auto">Hubungi Penjual</button>
                                 <a href="/pesanan/detail/<?php echo $order->id; ?>" class="bg-white border border-gray-300 text-gray-700 text-sm px-6 py-2 rounded hover:bg-gray-50 transition text-center w-full md:w-auto">Lihat Detail</a>

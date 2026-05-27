@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS orders (
     fee_marketplace DECIMAL(15,2),
     fee_shipping DECIMAL(15,2),
     total_payment DECIMAL(15,2),
-    status ENUM('Menunggu Pembayaran', 'Menunggu Konfirmasi', 'Sedang Dikemas', 'Dikirim', 'Selesai', 'Dibatalkan', 'Pengajuan Pembatalan') DEFAULT 'Menunggu Pembayaran',
+    status ENUM('Menunggu Pembayaran', 'Menunggu Konfirmasi', 'Sedang Dikemas', 'Diserahkan ke Kurir', 'Dikirim', 'Selesai', 'Dibatalkan', 'Pengajuan Pembatalan') DEFAULT 'Menunggu Pembayaran',
     smartbank_trx_id VARCHAR(100),
     shipping_service VARCHAR(50) DEFAULT NULL COMMENT 'e.g. JNE, J&T, SiCepat',
     resi_number VARCHAR(100) DEFAULT NULL COMMENT 'Nomor resi pengiriman',
@@ -103,4 +103,20 @@ CREATE TABLE IF NOT EXISTS wishlists (
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (product_id) REFERENCES products(id),
     UNIQUE(user_id, product_id)
+);
+
+-- Messages Table for Chat Feature
+CREATE TABLE IF NOT EXISTS messages (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    sender_id INT NOT NULL,
+    receiver_id INT NOT NULL,
+    message TEXT,
+    product_id INT DEFAULT NULL,
+    order_id VARCHAR(20) DEFAULT NULL,
+    is_read TINYINT(1) DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (sender_id) REFERENCES users(id),
+    FOREIGN KEY (receiver_id) REFERENCES users(id),
+    FOREIGN KEY (product_id) REFERENCES products(id),
+    FOREIGN KEY (order_id) REFERENCES orders(id)
 );

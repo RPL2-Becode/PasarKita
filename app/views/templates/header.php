@@ -45,6 +45,11 @@
             </form>
             <div class="flex items-center gap-4 shrink-0">
                 <?php if(isset($_SESSION['user_id'])) : ?>
+                    <?php
+                    // Get unread chat count
+                    $chatModel = clone (new Controller())->model('Chat_model');
+                    $unread_chat = $chatModel->getUnreadCount($_SESSION['user_id']);
+                    ?>
                     <?php if($_SESSION['user_role'] == 'admin') : ?>
                         <a href="/admin/dashboard" class="text-sm font-semibold text-gray-600 hover:text-primary transition hidden md:inline"><i class="fas fa-chart-bar mr-1"></i> Dashboard</a>
                     <?php elseif($_SESSION['user_role'] == 'operator') : ?>
@@ -52,9 +57,17 @@
                     <?php elseif(strtolower($_SESSION['user_role']) == 'pelapak') : ?>
                         <a href="/insight" class="text-sm font-semibold text-gray-600 hover:text-primary transition hidden md:inline"><i class="fas fa-chart-line mr-1 text-orange-500"></i> Insight</a>
                         <a href="/products" class="text-sm font-semibold text-gray-600 hover:text-primary transition hidden md:inline ml-2"><i class="fas fa-store mr-1"></i> Produk Saya</a>
+                        <a href="/products/orders" class="text-sm font-semibold text-gray-600 hover:text-primary transition hidden md:inline ml-2"><i class="fas fa-receipt mr-1 text-orange-500"></i> Pesanan Masuk</a>
                     <?php elseif(strtolower($_SESSION['user_role']) == 'consumen') : ?>
                         <a href="/pesanan" class="text-sm font-semibold text-gray-600 hover:text-primary transition hidden md:inline"><i class="fas fa-receipt mr-1"></i> Pesanan Saya</a>
                     <?php endif; ?>
+                    
+                    <a href="/chat" class="relative p-2 text-gray-600 hover:text-primary transition ml-2" title="Pesan">
+                        <i class="fas fa-comment-dots text-xl"></i>
+                        <?php if($unread_chat > 0) : ?>
+                            <span class="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-1.5 rounded-full border-2 border-white"><?php echo $unread_chat; ?></span>
+                        <?php endif; ?>
+                    </a>
                 <?php endif; ?>
                 <a href="/wishlist" class="relative p-2 text-gray-600 hover:text-red-500 transition" title="Wishlist">
                     <i class="fas fa-heart text-xl"></i>

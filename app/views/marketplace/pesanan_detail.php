@@ -135,23 +135,30 @@
             <!-- Action Buttons -->
             <?php if(in_array($data['order']->status, ['Menunggu Pembayaran', 'Menunggu Konfirmasi', 'Sedang Dikemas'])) : ?>
             <div class="mt-6">
-                <form action="/pesanan/cancel/<?php echo $data['order']->id; ?>" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin mengajukan pembatalan untuk pesanan ini?');">
-                    <button type="submit" class="w-full bg-white border-2 border-red-100 text-red-500 font-bold py-3 rounded-xl hover:bg-red-50 hover:border-red-200 transition">
-                        <i class="fas fa-times-circle mr-2"></i> Ajukan Pembatalan
-                    </button>
-                </form>
+                <button onclick="openCancelModal()" class="w-full bg-white border-2 border-red-100 text-red-500 font-bold py-3 rounded-xl hover:bg-red-50 hover:border-red-200 transition">
+                    <i class="fas fa-times-circle mr-2"></i> Ajukan Pembatalan
+                </button>
             </div>
             <?php elseif($data['order']->status == 'Pengajuan Pembatalan') : ?>
             <div class="bg-orange-50 rounded-2xl border border-orange-100 p-4 mt-6">
                 <p class="text-sm text-orange-700 text-center font-semibold"><i class="fas fa-info-circle mr-2"></i>Pengajuan pembatalan sedang diproses.</p>
             </div>
-            <?php elseif($data['order']->status == 'Dikirim') : ?>
-            <div class="mt-6">
+            <?php elseif($data['order']->status == 'Pengajuan Pengembalian') : ?>
+            <div class="bg-orange-50 rounded-2xl border border-orange-100 p-4 mt-6">
+                <p class="text-sm text-orange-700 text-center font-semibold"><i class="fas fa-info-circle mr-2"></i>Pengajuan pengembalian sedang diproses.</p>
+            </div>
+            <?php elseif(in_array($data['order']->status, ['Dikirim', 'Selesai'])) : ?>
+            <div class="mt-6 space-y-3">
+                <?php if($data['order']->status == 'Dikirim') : ?>
                 <form action="/pesanan/complete/<?php echo $data['order']->id; ?>" method="POST" onsubmit="return confirm('Apakah Anda yakin telah menerima pesanan ini dengan baik?');">
                     <button type="submit" class="w-full bg-primary text-white font-bold py-3 rounded-xl hover:bg-orange-700 transition shadow-sm">
                         <i class="fas fa-check-circle mr-2"></i> Pesanan Diterima
                     </button>
                 </form>
+                <?php endif; ?>
+                <button onclick="openReturnModal()" class="w-full bg-white border-2 border-gray-200 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-50 transition">
+                    <i class="fas fa-undo mr-2"></i> Ajukan Pengembalian
+                </button>
             </div>
             <?php endif; ?>
         </div>
@@ -189,6 +196,42 @@
             </div>
 
             <button type="submit" class="w-full bg-primary text-white font-bold py-3 rounded-xl hover:bg-orange-700 transition">Kirim Ulasan</button>
+        </form>
+    </div>
+</div>
+
+<!-- Cancel Modal -->
+<div id="cancelModal" class="fixed inset-0 bg-black/50 z-[100] hidden items-center justify-center fade-in">
+    <div class="bg-white rounded-2xl w-full max-w-md mx-4 shadow-2xl overflow-hidden">
+        <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-red-50">
+            <h3 class="font-bold text-red-800">Ajukan Pembatalan</h3>
+            <button onclick="closeCancelModal()" class="text-gray-400 hover:text-red-500"><i class="fas fa-times"></i></button>
+        </div>
+        <form action="/pesanan/cancel/<?php echo $data['order']->id; ?>" method="POST" class="p-6">
+            <div class="mb-4">
+                <p class="text-sm text-gray-600 mb-3"><i class="fas fa-exclamation-triangle text-orange-500 mr-2"></i> Peringatan: Pembatalan pesanan akan mengembalikan saldo Anda dikurangi biaya layanan (fee marketplace).</p>
+                <label class="block text-xs font-bold text-gray-600 uppercase mb-2">Alasan Pembatalan</label>
+                <textarea name="reason" rows="3" class="w-full border-gray-200 rounded-lg focus:border-red-500 focus:ring focus:ring-red-500/20 transition-all text-sm p-3 border" placeholder="Berikan alasan Anda..." required></textarea>
+            </div>
+            <button type="submit" class="w-full bg-red-500 text-white font-bold py-3 rounded-xl hover:bg-red-600 transition">Konfirmasi Pembatalan</button>
+        </form>
+    </div>
+</div>
+
+<!-- Return Modal -->
+<div id="returnModal" class="fixed inset-0 bg-black/50 z-[100] hidden items-center justify-center fade-in">
+    <div class="bg-white rounded-2xl w-full max-w-md mx-4 shadow-2xl overflow-hidden">
+        <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+            <h3 class="font-bold text-gray-800">Ajukan Pengembalian</h3>
+            <button onclick="closeReturnModal()" class="text-gray-400 hover:text-red-500"><i class="fas fa-times"></i></button>
+        </div>
+        <form action="/pesanan/return_order/<?php echo $data['order']->id; ?>" method="POST" class="p-6">
+            <div class="mb-4">
+                <p class="text-sm text-gray-600 mb-3"><i class="fas fa-exclamation-triangle text-orange-500 mr-2"></i> Peringatan: Pengembalian pesanan akan mengembalikan saldo Anda dikurangi biaya layanan (fee marketplace).</p>
+                <label class="block text-xs font-bold text-gray-600 uppercase mb-2">Alasan Pengembalian</label>
+                <textarea name="reason" rows="3" class="w-full border-gray-200 rounded-lg focus:border-primary focus:ring focus:ring-primary/20 transition-all text-sm p-3 border" placeholder="Jelaskan alasan pengembalian (contoh: barang cacat, tidak sesuai)..." required></textarea>
+            </div>
+            <button type="submit" class="w-full bg-primary text-white font-bold py-3 rounded-xl hover:bg-orange-700 transition">Kirim Pengajuan</button>
         </form>
     </div>
 </div>
@@ -231,6 +274,26 @@
     function closeReviewModal() {
         document.getElementById('reviewModal').classList.add('hidden');
         document.getElementById('reviewModal').classList.remove('flex');
+    }
+
+    function openCancelModal() {
+        document.getElementById('cancelModal').classList.remove('hidden');
+        document.getElementById('cancelModal').classList.add('flex');
+    }
+
+    function closeCancelModal() {
+        document.getElementById('cancelModal').classList.add('hidden');
+        document.getElementById('cancelModal').classList.remove('flex');
+    }
+
+    function openReturnModal() {
+        document.getElementById('returnModal').classList.remove('hidden');
+        document.getElementById('returnModal').classList.add('flex');
+    }
+
+    function closeReturnModal() {
+        document.getElementById('returnModal').classList.add('hidden');
+        document.getElementById('returnModal').classList.remove('flex');
     }
 </script>
 

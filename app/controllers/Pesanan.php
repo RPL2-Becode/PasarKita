@@ -60,17 +60,35 @@ class Pesanan extends Controller {
     public function cancel($id) {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $order = $this->orderModel->getOrderById($id);
+            $reason = trim($_POST['reason'] ?? '');
             
-            // Check if order belongs to user and is eligible for cancellation
-            // Eligible if it's not already completed, shipped, or cancelled.
             if ($order && $order->buyer_id == $_SESSION['user_id'] && in_array($order->status, ['Menunggu Pembayaran', 'Menunggu Konfirmasi', 'Sedang Dikemas'])) {
-                if ($this->orderModel->updateStatus($id, 'Pengajuan Pembatalan')) {
+                if ($this->orderModel->updateStatusAndReason($id, 'Pengajuan Pembatalan', $reason)) {
                     flash('pesanan_message', 'Pengajuan pembatalan berhasil dikirim. Menunggu konfirmasi toko / admin.', 'bg-yellow-100 text-yellow-700 border-yellow-400 border');
                 } else {
                     flash('pesanan_message', 'Gagal mengajukan pembatalan.', 'bg-red-100 text-red-700 border-red-400 border');
                 }
             } else {
                 flash('pesanan_message', 'Pesanan ini tidak dapat dibatalkan.', 'bg-red-100 text-red-700 border-red-400 border');
+            }
+        }
+        header('location: /pesanan/detail/' . $id);
+    }
+
+    // Request Return (Pengajuan Pengembalian)
+    public function return_order($id) {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $order = $this->orderModel->getOrderById($id);
+            $reason = trim($_POST['reason'] ?? '');
+            
+            if ($order && $order->buyer_id == $_SESSION['user_id'] && in_array($order->status, ['Dikirim', 'Selesai'])) {
+                if ($this->orderModel->updateStatusAndReason($id, 'Pengajuan Pengembalian', $reason)) {
+                    flash('pesanan_message', 'Pengajuan pengembalian produk berhasil dikirim. Menunggu konfirmasi admin.', 'bg-yellow-100 text-yellow-700 border-yellow-400 border');
+                } else {
+                    flash('pesanan_message', 'Gagal mengajukan pengembalian.', 'bg-red-100 text-red-700 border-red-400 border');
+                }
+            } else {
+                flash('pesanan_message', 'Pesanan ini tidak dapat dikembalikan.', 'bg-red-100 text-red-700 border-red-400 border');
             }
         }
         header('location: /pesanan/detail/' . $id);
