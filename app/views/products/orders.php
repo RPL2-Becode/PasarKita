@@ -79,7 +79,10 @@
                     <div class="flex items-center gap-6">
                         <div>
                             <span class="text-xs text-gray-400 block text-right">Pembeli</span>
-                            <span class="text-sm font-semibold text-gray-700"><i class="fas fa-user mr-1 text-gray-400 text-xs"></i><?php echo $order->buyer_name; ?></span>
+                            <span class="text-sm font-semibold text-gray-700 flex items-center gap-1 justify-end">
+                                <i class="fas fa-user text-gray-400 text-xs"></i><?php echo $order->buyer_name; ?>
+                                <a href="/chat/index/<?php echo $order->buyer_id; ?>?order_id=<?php echo $order->id; ?>" class="text-primary hover:text-orange-700 ml-1" title="Chat Pembeli"><i class="fas fa-comment-dots"></i></a>
+                            </span>
                         </div>
                         <div>
                             <span class="text-xs text-gray-400 block text-right">Tanggal</span>

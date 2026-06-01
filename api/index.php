@@ -9,10 +9,10 @@
  */
 
 // Load Configuration
-require_once '../../config/db.php';
+require_once dirname(__DIR__) . '/config/db.php';
 
 // Load Helpers
-require_once '../../app/helpers/session_helper.php';
+require_once dirname(__DIR__) . '/app/helpers/session_helper.php';
 
 // Set JSON response headers
 header('Content-Type: application/json; charset=UTF-8');

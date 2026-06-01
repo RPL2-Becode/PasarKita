@@ -1,14 +1,22 @@
 <?php require_once '../app/views/templates/header.php'; ?>
 
 <div class="max-w-4xl mx-auto px-4 py-8 fade-in">
-    <div class="flex items-center gap-4 mb-6">
-        <a href="/pesanan" class="w-10 h-10 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full flex items-center justify-center transition">
-            <i class="fas fa-arrow-left"></i>
-        </a>
-        <div>
-            <h2 class="text-2xl font-extrabold text-gray-900">Detail Pesanan</h2>
-            <p class="text-gray-500 font-mono text-sm">#<?php echo $data['order']->id; ?></p>
+    <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-4">
+            <a href="/pesanan" class="w-10 h-10 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full flex items-center justify-center transition">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div>
+                <h2 class="text-2xl font-extrabold text-gray-900">Detail Pesanan</h2>
+                <p class="text-gray-500 font-mono text-sm">#<?php echo $data['order']->id; ?></p>
+            </div>
         </div>
+        
+        <?php if(!empty($data['items']) && !empty($data['items'][0]->seller_id)) : ?>
+        <a href="/chat/index/<?php echo $data['items'][0]->seller_id; ?>?order_id=<?php echo $data['order']->id; ?>" class="bg-orange-100 text-primary border border-primary px-4 py-2 rounded-lg text-sm font-bold hover:bg-primary hover:text-white transition flex items-center gap-2">
+            <i class="fas fa-comment-dots"></i> Chat Penjual
+        </a>
+        <?php endif; ?>
     </div>
 
     <?php flash('pesanan_message'); ?>

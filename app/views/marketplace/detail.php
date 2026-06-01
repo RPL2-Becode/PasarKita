@@ -130,9 +130,9 @@
                         <h3 class="font-bold text-lg text-gray-800"><?php echo !empty($seller->store_name) ? $seller->store_name : $seller->username; ?></h3>
                         <p class="text-sm text-green-500 mb-2"><i class="fas fa-circle text-[10px] mr-1"></i> Online</p>
                         <div class="flex gap-2">
-                            <button class="px-3 py-1.5 border border-primary text-primary text-xs font-semibold rounded hover:bg-orange-50 transition">
+                            <a href="/chat/index/<?php echo $seller->id; ?>?product_id=<?php echo $p->id; ?>" class="px-3 py-1.5 border border-primary text-primary text-xs font-semibold rounded hover:bg-orange-50 transition inline-block">
                                 <i class="fas fa-comment-dots mr-1"></i> Chat Sekarang
-                            </button>
+                            </a>
                             <a href="/toko/<?php echo $seller->username; ?>" class="px-3 py-1.5 border border-gray-300 text-gray-600 text-xs font-semibold rounded hover:bg-gray-100 transition">
                                 <i class="fas fa-store mr-1"></i> Kunjungi Toko
                             </a>

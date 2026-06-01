@@ -97,10 +97,15 @@
 
                                     <!-- Embedded Order Context -->
                                     <?php if(!empty($msg->order_id)) : ?>
-                                        <div class="<?php echo $is_me ? 'bg-white/10' : 'bg-gray-50'; ?> p-2 rounded-lg mb-2 text-xs border-l-2 <?php echo $is_me ? 'border-white' : 'border-primary'; ?>">
-                                            <p class="font-bold">Order: #<?php echo $msg->order_id; ?></p>
-                                            <p>Total: Rp<?php echo number_format($msg->order_total, 0, ',', '.'); ?></p>
-                                            <p>Status: <?php echo $msg->order_status; ?></p>
+                                        <div class="<?php echo $is_me ? 'bg-white/15' : 'bg-white border border-gray-200'; ?> p-3 rounded-lg mb-2 text-xs shadow-sm">
+                                            <div class="flex items-center justify-between mb-1 gap-4">
+                                                <span class="font-bold flex items-center gap-1.5"><i class="fas fa-receipt <?php echo $is_me ? 'text-white/70' : 'text-primary'; ?>"></i> #<?php echo $msg->order_id; ?></span>
+                                                <span class="px-2 py-0.5 rounded text-[9px] font-extrabold tracking-wider <?php echo $is_me ? 'bg-white text-primary' : 'bg-orange-100 text-orange-700'; ?> uppercase"><?php echo $msg->order_status; ?></span>
+                                            </div>
+                                            <div class="flex justify-between items-end mt-2 pt-2 border-t <?php echo $is_me ? 'border-white/20' : 'border-gray-100'; ?>">
+                                                <span class="opacity-80">Total Pembayaran:</span>
+                                                <span class="font-bold <?php echo $is_me ? 'text-white' : 'text-primary'; ?> text-sm">Rp <?php echo number_format($msg->order_total, 0, ',', '.'); ?></span>
+                                            </div>
                                         </div>
                                     <?php endif; ?>
 
@@ -121,21 +126,33 @@
 
                 <!-- Context Preview Before Sending -->
                 <?php if($data['product_context'] || $data['order_context']): ?>
-                <div class="px-4 py-2 bg-gray-100 border-t border-gray-200 text-xs flex gap-2 items-center overflow-x-auto">
-                    <span class="text-gray-500 font-bold whitespace-nowrap">Tanyakan tentang:</span>
+                <div class="px-4 py-3 bg-blue-50 border-t border-blue-100 text-xs flex gap-3 items-center overflow-x-auto shadow-inner">
+                    <span class="text-blue-700 font-bold whitespace-nowrap"><i class="fas fa-paperclip mr-1"></i> Melampirkan:</span>
                     <?php if($data['product_context']): ?>
-                        <div class="bg-white px-2 py-1 rounded border border-gray-200 flex items-center gap-2 relative group">
+                        <div class="bg-white px-3 py-1.5 rounded-lg border border-blue-200 flex items-center gap-3 relative shadow-sm">
                             <?php if($data['product_context']->image_url): ?>
-                                <img src="<?php echo $data['product_context']->image_url; ?>" class="w-6 h-6 object-cover rounded">
+                                <img src="<?php echo $data['product_context']->image_url; ?>" class="w-8 h-8 object-cover rounded">
+                            <?php else: ?>
+                                <div class="w-8 h-8 bg-gray-100 rounded flex items-center justify-center"><i class="fas fa-box text-gray-400"></i></div>
                             <?php endif; ?>
-                            <span class="truncate max-w-[100px]"><?php echo $data['product_context']->name; ?></span>
-                            <a href="/chat/index/<?php echo $data['active_contact']->id; ?>" class="text-red-500 hover:text-red-700 ml-1"><i class="fas fa-times-circle"></i></a>
+                            <div class="flex flex-col">
+                                <span class="truncate max-w-[150px] font-semibold text-gray-800"><?php echo $data['product_context']->name; ?></span>
+                                <span class="text-primary font-bold">Rp <?php echo number_format($data['product_context']->price, 0, ',', '.'); ?></span>
+                            </div>
+                            <a href="/chat/index/<?php echo $data['active_contact']->id; ?>" class="text-gray-400 hover:text-red-500 ml-2"><i class="fas fa-times-circle text-base"></i></a>
                         </div>
                     <?php endif; ?>
+                    
                     <?php if($data['order_context']): ?>
-                        <div class="bg-white px-2 py-1 rounded border border-gray-200 flex items-center gap-2 relative group">
-                            <span class="font-mono">#<?php echo $data['order_context']->id; ?></span>
-                            <a href="/chat/index/<?php echo $data['active_contact']->id; ?>" class="text-red-500 hover:text-red-700 ml-1"><i class="fas fa-times-circle"></i></a>
+                        <div class="bg-white px-3 py-2 rounded-lg border border-blue-200 flex items-center gap-3 relative shadow-sm">
+                            <div class="bg-blue-100 text-blue-600 w-8 h-8 rounded flex items-center justify-center shrink-0">
+                                <i class="fas fa-receipt"></i>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="font-mono font-bold text-gray-800">#<?php echo $data['order_context']->id; ?></span>
+                                <span class="text-[10px] font-bold text-orange-600 uppercase tracking-wider"><?php echo $data['order_context']->status; ?></span>
+                            </div>
+                            <a href="/chat/index/<?php echo $data['active_contact']->id; ?>" class="text-gray-400 hover:text-red-500 ml-2"><i class="fas fa-times-circle text-base"></i></a>
                         </div>
                     <?php endif; ?>
                 </div>

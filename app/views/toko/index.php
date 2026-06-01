@@ -31,9 +31,9 @@
                     <button class="px-4 py-1.5 border border-primary text-primary text-sm font-semibold rounded hover:bg-orange-50 transition">
                         <i class="fas fa-plus mr-1"></i> Ikuti
                     </button>
-                    <button class="px-4 py-1.5 border border-gray-300 text-gray-700 text-sm font-semibold rounded hover:bg-gray-50 transition">
+                    <a href="/chat/index/<?php echo $data['seller']->id; ?>" class="px-4 py-1.5 border border-gray-300 text-gray-700 text-sm font-semibold rounded hover:bg-gray-50 transition inline-block">
                         <i class="fas fa-comment-dots mr-1"></i> Chat
-                    </button>
+                    </a>
                 </div>
             </div>
             
