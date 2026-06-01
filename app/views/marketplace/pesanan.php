@@ -42,7 +42,7 @@
                                 <div class="bg-gray-50 px-6 py-4 border-b border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                                     <div class="flex items-center gap-3">
                                         <span class="font-extrabold text-gray-800 text-sm uppercase flex items-center"><i class="fas fa-store text-gray-400 mr-2"></i> <?php echo !empty($item->store_name) ? $item->store_name : $item->seller_name; ?></span>
-                                        <button class="bg-primary text-white text-[10px] font-bold px-2.5 py-1 rounded flex items-center gap-1 hover:bg-orange-600 transition"><i class="fas fa-comment-alt"></i> Chat</button>
+                                        <a href="/chat/index/<?php echo $item->seller_id; ?>?product_id=<?php echo $item->product_id; ?>&order_id=<?php echo $order->id; ?>" class="bg-primary text-white text-[10px] font-bold px-2.5 py-1 rounded flex items-center gap-1 hover:bg-orange-600 transition"><i class="fas fa-comment-alt"></i> Chat</a>
                                         <a href="/toko/<?php echo $item->seller_name; ?>" class="border border-gray-300 text-gray-600 text-[10px] font-bold px-2.5 py-1 rounded flex items-center gap-1 hover:bg-gray-100 transition"><i class="fas fa-store"></i> Kunjungi Toko</a>
                                     </div>
                                     <div class="flex items-center gap-2">
@@ -90,7 +90,7 @@
                                     <?php endif; ?>
                                     <a href="/pesanan/detail/<?php echo $order->id; ?>" class="bg-white border border-gray-300 text-gray-700 text-sm px-6 py-2 rounded hover:bg-gray-50 transition text-center w-full md:w-auto">Ajukan Pengembalian</a>
                                 <?php endif; ?>
-                                <button class="bg-white border border-gray-300 text-gray-700 text-sm px-6 py-2 rounded hover:bg-gray-50 transition w-full md:w-auto">Hubungi Penjual</button>
+                                <a href="/chat/index/<?php echo !empty($order->items) ? $order->items[0]->seller_id : ''; ?>?order_id=<?php echo $order->id; ?><?php echo !empty($order->items) ? '&product_id=' . $order->items[0]->product_id : ''; ?>" class="bg-white border border-gray-300 text-gray-700 text-sm px-6 py-2 rounded hover:bg-gray-50 transition w-full md:w-auto text-center">Hubungi Penjual</a>
                                 <a href="/pesanan/detail/<?php echo $order->id; ?>" class="bg-white border border-gray-300 text-gray-700 text-sm px-6 py-2 rounded hover:bg-gray-50 transition text-center w-full md:w-auto">Lihat Detail</a>
                             </div>
                         </div>

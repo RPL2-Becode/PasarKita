@@ -101,6 +101,23 @@ class Admin extends Controller {
                             $this->userModel->addBalance($order->buyer_id, $refund_amount);
                         }
                     }
+                    // Automated chat from seller to buyer for general status updates
+                    $order = $this->orderModel->getOrderById($order_id);
+                    $items = $this->orderModel->getOrderItems($order_id);
+                    if ($order && !empty($items) && !in_array($new_status, ['Dibatalkan', 'Dikembalikan'])) {
+                        $chatModel = $this->model('Chat_model');
+                        $seller_id = $items[0]->seller_id;
+                        $chatMsg = "Halo! Status pesanan Anda (#" . $order_id . ") telah diperbarui oleh sistem menjadi: " . $new_status . ".";
+                        $chatData = [
+                            'sender_id' => $seller_id,
+                            'receiver_id' => $order->buyer_id,
+                            'message' => $chatMsg,
+                            'product_id' => null,
+                            'order_id' => $order_id
+                        ];
+                        $chatModel->sendMessage($chatData);
+                    }
+                    
                     flash('order_message', 'Status order ' . $order_id . ' berhasil diperbarui ke "' . $new_status . '"', 'bg-green-100 text-green-700');
                 } else {
                     flash('order_message', 'Gagal memperbarui status order', 'bg-red-100 text-red-700');
@@ -126,6 +143,23 @@ class Admin extends Controller {
                 $this->orderModel->updateResi($order_id, $shipping_service, $resi_number);
                 $this->orderModel->updateStatus($order_id, 'Dikirim');
                 flash('order_message', 'Resi ' . $shipping_service . ' ' . $resi_number . ' berhasil disimpan untuk order ' . $order_id, 'bg-green-100 text-green-700');
+                
+                // Automated chat from seller to buyer
+                $order = $this->orderModel->getOrderById($order_id);
+                $items = $this->orderModel->getOrderItems($order_id);
+                if ($order && !empty($items)) {
+                    $chatModel = $this->model('Chat_model');
+                    $seller_id = $items[0]->seller_id;
+                    $chatMsg = "Halo! Pesanan Anda (#" . $order_id . ") telah dikirim menggunakan " . $shipping_service . " dengan nomor resi: " . $resi_number . ". Silakan pantau pengiriman Anda. Terima kasih!";
+                    $chatData = [
+                        'sender_id' => $seller_id,
+                        'receiver_id' => $order->buyer_id,
+                        'message' => $chatMsg,
+                        'product_id' => null,
+                        'order_id' => $order_id
+                    ];
+                    $chatModel->sendMessage($chatData);
+                }
             } else {
                 flash('order_message', 'Nomor resi dan jasa pengiriman tidak boleh kosong!', 'bg-red-100 text-red-700');
             }

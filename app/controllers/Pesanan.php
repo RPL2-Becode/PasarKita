@@ -102,8 +102,23 @@ class Pesanan extends Controller {
             // Check if order belongs to user and is eligible for completion (Dikirim)
             if ($order && $order->buyer_id == $_SESSION['user_id'] && $order->status == 'Dikirim') {
                 if ($this->orderModel->updateStatus($id, 'Selesai')) {
-                    // Distribusi uang ke pelapak
+                    // Automated chat from seller to buyer
                     $items = $this->orderModel->getOrderItems($id);
+                    if ($order && !empty($items)) {
+                        $chatModel = $this->model('Chat_model');
+                        $seller_id = $items[0]->seller_id;
+                        $chatMsg = "Halo! Pesanan Anda (#" . $id . ") telah diselesaikan. Terima kasih telah berbelanja di toko kami! Jangan lupa berikan ulasan Anda ya.";
+                        $chatData = [
+                            'sender_id' => $seller_id,
+                            'receiver_id' => $order->buyer_id,
+                            'message' => $chatMsg,
+                            'product_id' => null,
+                            'order_id' => $id
+                        ];
+                        $chatModel->sendMessage($chatData);
+                    }
+
+                    // Distribusi uang ke pelapak
                     $userModel = $this->model('User_model');
                     
                     foreach ($items as $item) {

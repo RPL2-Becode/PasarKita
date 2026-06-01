@@ -13,7 +13,7 @@
         </div>
         
         <?php if(!empty($data['items']) && !empty($data['items'][0]->seller_id)) : ?>
-        <a href="/chat/index/<?php echo $data['items'][0]->seller_id; ?>?order_id=<?php echo $data['order']->id; ?>" class="bg-orange-100 text-primary border border-primary px-4 py-2 rounded-lg text-sm font-bold hover:bg-primary hover:text-white transition flex items-center gap-2">
+        <a href="/chat/index/<?php echo $data['items'][0]->seller_id; ?>?order_id=<?php echo $data['order']->id; ?>&product_id=<?php echo $data['items'][0]->product_id; ?>" class="bg-orange-100 text-primary border border-primary px-4 py-2 rounded-lg text-sm font-bold hover:bg-primary hover:text-white transition flex items-center gap-2">
             <i class="fas fa-comment-dots"></i> Chat Penjual
         </a>
         <?php endif; ?>
