@@ -1,0 +1,10 @@
+# Use this workspace to collaborate
+workspace:
+  id: c5ef7cd8-4b70-43f2-810f-b6bce5760b23
+
+localResources:
+  collections:
+    - ..\dokumentasi\PasarKita_Postman_Collection.json
+  docs:
+    - ..\dokumentasi\planning.md
+d

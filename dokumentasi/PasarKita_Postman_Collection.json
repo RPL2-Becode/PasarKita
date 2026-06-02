@@ -1,0 +1,202 @@
+{
+	"info": {
+		"name": "PasarKita API",
+		"description": "Dokumentasi REST API untuk PasarKita Marketplace v1.0",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Products",
+			"item": [
+				{
+					"name": "Get All Products",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}?endpoint=products",
+							"host": [
+								"{{base_url}}"
+							],
+							"query": [
+								{
+									"key": "endpoint",
+									"value": "products"
+								}
+							]
+						},
+						"description": "Mengambil semua produk yang aktif di marketplace diurutkan dari yang terbaru."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Product",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"seller_id\": 2,\n  \"name\": \"Minyak Goreng SunCo 2L\",\n  \"description\": \"Minyak goreng berkualitas tinggi, jernih, dan hemat.\",\n  \"price\": 38000,\n  \"stock\": 100,\n  \"image_url\": \"uploads/minyak.jpg\",\n  \"category_id\": 3\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}?endpoint=products",
+							"host": [
+								"{{base_url}}"
+							],
+							"query": [
+								{
+									"key": "endpoint",
+									"value": "products"
+								}
+							]
+						},
+						"description": "Menambahkan produk baru yang dijual oleh pelapak/seller."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Categories",
+			"item": [
+				{
+					"name": "Get All Categories",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}?endpoint=categories",
+							"host": [
+								"{{base_url}}"
+							],
+							"query": [
+								{
+									"key": "endpoint",
+									"value": "categories"
+								}
+							]
+						},
+						"description": "Mengambil seluruh kategori produk untuk filter atau navigasi menu."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Orders",
+			"item": [
+				{
+					"name": "Get All Orders",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}?endpoint=orders",
+							"host": [
+								"{{base_url}}"
+							],
+							"query": [
+								{
+									"key": "endpoint",
+									"value": "orders"
+								}
+							]
+						},
+						"description": "Mengambil daftar transaksi/pesanan lengkap dengan nama pembeli."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Order Status",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"order_id\": 10,\n  \"status\": \"Dikirim\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}?endpoint=orders&action=status",
+							"host": [
+								"{{base_url}}"
+							],
+							"query": [
+								{
+									"key": "endpoint",
+									"value": "orders"
+								},
+								{
+									"key": "action",
+									"value": "status"
+								}
+							]
+						},
+						"description": "Memperbarui status pengiriman/proses dari sebuah order."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Get All Users",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}?endpoint=users",
+							"host": [
+								"{{base_url}}"
+							],
+							"query": [
+								{
+									"key": "endpoint",
+									"value": "users"
+								}
+							]
+						},
+						"description": "Mengambil semua daftar user terdaftar beserta perannya (Admin/Pelapak/Konsumen) dan saldo dompet digital mereka tanpa membocorkan data password atau data sensitif lainnya."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost/pasar-kita/api/index.php",
+			"type": "string"
+		}
+	]
+}

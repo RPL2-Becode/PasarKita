@@ -72,53 +72,95 @@
         </div>
     </div>
 
-    <!-- Recent Orders Table -->
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+    <!-- Recent Orders Chart -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-10">
         <div class="p-6 border-b border-gray-100 flex justify-between items-center">
-            <h2 class="text-lg font-bold text-gray-800"><i class="fas fa-history mr-2 text-primary"></i>Transaksi Terbaru</h2>
-            <a href="/admin/orders" class="text-sm text-primary font-semibold hover:underline">Lihat Semua →</a>
+            <h2 class="text-lg font-bold text-gray-800"><i class="fas fa-chart-line mr-2 text-primary"></i>Grafik Transaksi Terbaru</h2>
+            <a href="/admin/orders" class="text-sm text-primary font-semibold hover:underline">Lihat Semua Transaksi →</a>
         </div>
-        <div class="table-container" style="border:none; border-radius:0;">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Order ID</th>
-                        <th>Pembeli</th>
-                        <th>Total</th>
-                        <th>Fee</th>
-                        <th>Status</th>
-                        <th>Tanggal</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php 
-                    $recent = array_slice($data['recent_orders'], 0, 10);
-                    foreach($recent as $order) : 
-                    ?>
-                    <tr>
-                        <td class="font-mono text-xs font-bold"><?php echo $order->id; ?></td>
-                        <td><?php echo $order->buyer_name; ?></td>
-                        <td class="font-semibold">Rp <?php echo number_format($order->total_payment, 0, ',', '.'); ?></td>
-                        <td class="text-orange-600">Rp <?php echo number_format($order->fee_marketplace, 0, ',', '.'); ?></td>
-                        <td>
-                            <?php
-                            $statusClass = 'badge-info';
-                            if($order->status == 'Selesai') $statusClass = 'badge-success';
-                            elseif($order->status == 'Dibatalkan') $statusClass = 'badge-danger';
-                            elseif($order->status == 'Menunggu Konfirmasi' || $order->status == 'Menunggu Pembayaran') $statusClass = 'badge-warning';
-                            ?>
-                            <span class="badge <?php echo $statusClass; ?>"><?php echo $order->status; ?></span>
-                        </td>
-                        <td class="text-gray-500 text-xs"><?php echo date('d M Y H:i', strtotime($order->created_at)); ?></td>
-                    </tr>
-                    <?php endforeach; ?>
-                    <?php if(empty($data['recent_orders'])) : ?>
-                    <tr><td colspan="6" class="text-center py-8 text-gray-400">Belum ada transaksi</td></tr>
-                    <?php endif; ?>
-                </tbody>
-            </table>
+        <div class="p-6">
+            <canvas id="revenueChart" height="100"></canvas>
         </div>
     </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const rawData = <?php echo json_encode($data['recent_orders']); ?>;
+    
+    // Reverse data to show oldest to newest left to right
+    const chartData = rawData.slice(0, 15).reverse();
+    
+    const labels = chartData.map(order => {
+        const d = new Date(order.created_at);
+        return d.getDate() + '/' + (d.getMonth()+1) + ' ' + d.getHours() + ':' + (d.getMinutes()<10?'0':'') + d.getMinutes();
+    });
+    
+    const totals = chartData.map(order => order.total_payment);
+    const fees = chartData.map(order => order.fee_marketplace);
+
+    const ctx = document.getElementById('revenueChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Total Transaksi (Rp)',
+                    data: totals,
+                    borderColor: '#ff8a00',
+                    backgroundColor: 'rgba(255, 138, 0, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.3
+                },
+                {
+                    label: 'Fee Admin (Rp)',
+                    data: fees,
+                    borderColor: '#2563eb',
+                    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.3
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.y !== null) {
+                                label += new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(context.parsed.y);
+                            }
+                            return label;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value, index, values) {
+                            return 'Rp ' + (value/1000) + 'k';
+                        }
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
 </div>
 
 <?php require_once '../app/views/templates/footer.php'; ?>
