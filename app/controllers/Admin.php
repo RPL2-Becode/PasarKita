@@ -254,5 +254,52 @@ class Admin extends Controller {
             header('location: /admin/users');
         }
     }
+
+    /**
+     * Manajemen API Integrasi (SmartBank & LogistiKita)
+     */
+    public function api_settings() {
+        if ($_SESSION['user_role'] !== 'admin') {
+            header('location: /admin/orders');
+            exit();
+        }
+
+        $configFile = '../config/api_integrations.json';
+        $settings = ['smartbank_url' => '', 'logistikita_url' => ''];
+        
+        if (file_exists($configFile)) {
+            $settings = json_decode(file_get_contents($configFile), true);
+        }
+
+        $data = [
+            'title' => 'Pengaturan Integrasi API - PasarKita',
+            'settings' => $settings
+        ];
+
+        $this->view('admin/api_settings', $data);
+    }
+
+    public function save_api_settings() {
+        if ($_SESSION['user_role'] !== 'admin') {
+            header('location: /admin/orders');
+            exit();
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $settings = [
+                'smartbank_url' => trim($_POST['smartbank_url']),
+                'logistikita_url' => trim($_POST['logistikita_url'])
+            ];
+
+            $configFile = '../config/api_integrations.json';
+            if (file_put_contents($configFile, json_encode($settings, JSON_PRETTY_PRINT))) {
+                flash('api_message', 'Pengaturan integrasi API berhasil disimpan.', 'bg-green-100 text-green-700');
+            } else {
+                flash('api_message', 'Gagal menyimpan pengaturan API. Pastikan folder config dapat ditulis (writable).', 'bg-red-100 text-red-700');
+            }
+            
+            header('location: /admin/api_settings');
+        }
+    }
 }
 ?>

@@ -6,7 +6,8 @@
             <h1 class="text-3xl font-extrabold text-gray-900">Dashboard Admin</h1>
             <p class="text-gray-500 text-sm mt-1">Ringkasan finansial dan aktivitas PasarKita</p>
         </div>
-        <div class="flex gap-3">
+        <div class="flex flex-wrap gap-3">
+            <a href="/admin/api_settings" class="px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm font-semibold text-blue-700 hover:bg-blue-600 hover:text-white transition"><i class="fas fa-network-wired mr-2"></i>Integrasi API</a>
             <a href="/admin/orders" class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-semibold hover:border-primary hover:text-primary transition"><i class="fas fa-list-alt mr-2"></i>Monitoring Order</a>
             <a href="/admin/users" class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-semibold hover:border-primary hover:text-primary transition"><i class="fas fa-users mr-2"></i>Manajemen User</a>
         </div>
