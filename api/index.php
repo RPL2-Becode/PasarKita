@@ -30,8 +30,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 $endpoint = isset($_GET['endpoint']) ? $_GET['endpoint'] : '';
 $action   = isset($_GET['action'])   ? $_GET['action']   : '';
 
+// Helper: Log API Requests
+function logApiRequest($statusCode, $errorMsg = '') {
+    $logFile = dirname(__DIR__) . '/api/api_request.log';
+    $time = date('Y-m-d H:i:s');
+    $endpoint = $_SERVER['REQUEST_URI'];
+    $method = $_SERVER['REQUEST_METHOD'];
+    $ip = $_SERVER['REMOTE_ADDR'];
+    $status = $statusCode < 400 ? 'SUCCESS' : 'ERROR';
+    
+    // Format: [TIME] [IP] METHOD ENDPOINT | STATUS | ERROR_MSG
+    $logEntry = sprintf("[%s] [%s] %s %s | %s | %s\n", $time, $ip, $method, $endpoint, $status, $errorMsg);
+    
+    file_put_contents($logFile, $logEntry, FILE_APPEND);
+}
+
 // Helper: Send JSON response
 function jsonResponse($data, $statusCode = 200) {
+    // Ekstrak pesan error jika ada untuk keperluan logging
+    $errorMsg = ($statusCode >= 400 && isset($data['message'])) ? $data['message'] : '';
+    logApiRequest($statusCode, $errorMsg);
+
     http_response_code($statusCode);
     echo json_encode([
         'status'  => $statusCode < 400 ? 'success' : 'error',

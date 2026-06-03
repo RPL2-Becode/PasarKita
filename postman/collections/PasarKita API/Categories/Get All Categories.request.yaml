@@ -1,0 +1,7 @@
+$kind: http-request
+description: Mengambil seluruh kategori produk untuk filter atau navigasi menu.
+url: "{{base_url}}?endpoint=categories"
+method: GET
+queryParams:
+  endpoint: categories
+order: 1000

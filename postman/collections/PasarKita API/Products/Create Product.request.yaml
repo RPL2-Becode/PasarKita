@@ -1,0 +1,21 @@
+$kind: http-request
+description: Menambahkan produk baru yang dijual oleh pelapak/seller.
+url: "{{base_url}}?endpoint=products"
+method: POST
+headers:
+  Content-Type: application/json
+queryParams:
+  endpoint: products
+body:
+  type: json
+  content: |-
+    {
+      "seller_id": 2,
+      "name": "Minyak Goreng SunCo 2L",
+      "description": "Minyak goreng berkualitas tinggi, jernih, dan hemat.",
+      "price": 38000,
+      "stock": 100,
+      "image_url": "uploads/minyak.jpg",
+      "category_id": 3
+    }
+order: 2000

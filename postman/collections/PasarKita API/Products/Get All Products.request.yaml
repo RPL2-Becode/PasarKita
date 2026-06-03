@@ -1,0 +1,9 @@
+$kind: http-request
+description: Mengambil semua produk yang aktif di marketplace diurutkan dari yang terbaru.
+url: "{{base_url}}?endpoint=products"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  endpoint: products
+order: 1000

@@ -1,0 +1,7 @@
+$kind: http-request
+description: Mengambil daftar transaksi/pesanan lengkap dengan nama pembeli.
+url: "{{base_url}}?endpoint=orders"
+method: GET
+queryParams:
+  endpoint: orders
+order: 1000

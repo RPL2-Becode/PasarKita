@@ -1,0 +1,7 @@
+$kind: http-request
+description: Mengambil semua daftar user terdaftar beserta perannya (Admin/Pelapak/Konsumen) dan saldo dompet digital mereka tanpa membocorkan data password atau data sensitif lainnya.
+url: "{{base_url}}?endpoint=users"
+method: GET
+queryParams:
+  endpoint: users
+order: 1000

@@ -1,0 +1,17 @@
+$kind: http-request
+description: Memperbarui status pengiriman/proses dari sebuah order.
+url: "{{base_url}}?endpoint=orders&action=status"
+method: PUT
+headers:
+  Content-Type: application/json
+queryParams:
+  endpoint: orders
+  action: status
+body:
+  type: json
+  content: |-
+    {
+      "order_id": 10,
+      "status": "Dikirim"
+    }
+order: 2000

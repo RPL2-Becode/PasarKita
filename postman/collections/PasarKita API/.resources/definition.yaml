@@ -1,0 +1,4 @@
+$kind: collection
+description: Dokumentasi REST API untuk PasarKita Marketplace v1.0
+variables:
+  base_url: http://localhost/pasar-kita/api/index.php
