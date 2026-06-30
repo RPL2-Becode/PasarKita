@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PasarKita - Dummy Checkout</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f0f4f8;
+            --card-bg: #ffffff;
+            --text-main: #2d3748;
+            --text-muted: #718096;
+            
+            --logistik-color: #ed8936;
+            --logistik-light: #feebc8;
+            
+            --bank-color: #3182ce;
+            --bank-light: #bee3f8;
+            
+            --primary: #48bb78;
+            --primary-hover: #38a169;
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg-color); 
+            color: var(--text-main);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .layout-wrapper {
+            max-width: 900px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h2 {
+            font-weight: 700;
+            font-size: 28px;
+            margin: 0;
+            color: #1a202c;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+        }
+
+        .card-header {
+            padding: 20px;
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+        }
+
+        .card-logistik .card-header {
+            background: linear-gradient(135deg, #ed8936, #dd6b20);
+        }
+
+        .card-smartbank .card-header {
+            background: linear-gradient(135deg, #3182ce, #2b6cb0);
+        }
+
+        .card-body {
+            padding: 25px;
+            flex-grow: 1;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-muted);
+        }
+
+        select, input { 
+            width: 100%; 
+            padding: 12px; 
+            border-radius: 8px; 
+            border: 1px solid #e2e8f0; 
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--bank-color);
+            box-shadow: 0 0 0 3px var(--bank-light);
+        }
+
+        select:disabled {
+            background-color: #f7fafc;
+            cursor: not-allowed;
+        }
+
+        .btn { 
+            color: white; 
+            border: none; 
+            padding: 12px 20px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            width: 100%; 
+            font-size: 15px; 
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-logistik {
+            background-color: var(--logistik-color);
+        }
+        .btn-logistik:hover {
+            background-color: #dd6b20;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            padding: 15px;
+            font-size: 18px;
+            box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+        }
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .rules-box {
+            background: #fffaf0;
+            border-left: 4px solid #ed8936;
+            padding: 12px 15px;
+            border-radius: 4px;
+            font-size: 13px;
+            margin-bottom: 20px;
+            color: #7b341e;
+        }
+
+        .rules-box ul {
+            margin: 5px 0 0;
+            padding-left: 20px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .summary-row.total {
+            font-size: 18px;
+            font-weight: 700;
+            color: #e53e3e;
+            border-top: 2px dashed #e2e8f0;
+            padding-top: 15px;
+            margin-top: 15px;
+        }
+
+        .summary-value {
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        #logistik-result, #payment-result { 
+            margin-top: 15px; 
+            padding: 12px; 
+            border-radius: 8px; 
+            font-size: 14px;
+            display: none; 
+            animation: fadeIn 0.3s ease;
+        }
+
+        .badge-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+        .badge-error {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #feb2b2;
+        }
+        .badge-info {
+            background: var(--logistik-light);
+            color: #7b341e;
+            border: 1px solid #fbd38d;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .checkout-footer {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        }
+    </style>
+</head>
+<body>
+
+<div class="layout-wrapper">
+    <div class="header">
+        <h2>Simulasi Checkout Terintegrasi</h2>
+        <p>Demo pemisahan sistem Logistik dan Keuangan (Microservices)</p>
+    </div>
+
+    <div class="card-grid">
+        <!-- LOGISTIK KITA CARD -->
+        <div class="card card-logistik">
+            <div class="card-header">
+                🚚 LogistikKita API
+            </div>
+            <div class="card-body">
+                <div class="input-group">
+                    <label>Subtotal Belanja Anda</label>
+                    <input type="number" id="subtotal-input" value="30000">
+                </div>
+                
+                <button id="btn-cek-ongkir" class="btn btn-logistik">
+                    📍 Cek Tarif Ongkir
+                </button>
+
+                <div class="input-group" style="margin-top: 15px;">
+                    <label>Pilih Layanan Kurir</label>
+                    <select id="kurir-select" disabled>
+                        <option value="">-- Menunggu Data API --</option>
+                    </select>
+                </div>
+                
+                <div id="logistik-result" class="badge-info"></div>
+            </div>
+        </div>
+
+        <!-- SMARTBANK CARD -->
+        <div class="card card-smartbank">
+            <div class="card-header">
+                🏦 SmartBank API
+            </div>
+            <div class="card-body">
+                <div class="rules-box">
+                    <strong>Aturan Keuangan (Otomatis):</strong>
+                    <ul>
+                        <li>Fee Bank: 1% | Gateway: 0.5%</li>
+                        <li>Pajak Sistem: 2%</li>
+                        <li>Fee Marketplace: 2% (Dari penjual)</li>
+                    </ul>
+                </div>
+
+                <div class="summary-row">
+                    <span>Subtotal Barang</span>
+                    <span class="summary-value" id="display-subtotal">Rp 30.000</span>
+                </div>
+                <div class="summary-row">
+                    <span>Ongkos Kirim</span>
+                    <span class="summary-value" id="display-ongkir">Rp 0</span>
+                </div>
+                <div class="summary-row">
+                    <span>Pajak Sistem (2%)</span>
+                    <span class="summary-value" id="display-pajak">Rp 600</span>
+                </div>
+                <div class="summary-row">
+                    <span>Fee Bank (1%)</span>
+                    <span class="summary-value" id="display-bank">Rp 300</span>
+                </div>
+                <div class="summary-row">
+                    <span>Fee Gateway (0.5%)</span>
+                    <span class="summary-value" id="display-gateway">Rp 150</span>
+                </div>
+                
+                <div class="summary-row total">
+                    <span>Total Tagihan</span>
+                    <span id="total-bayar">Rp 31.050</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SUBMIT AREA -->
+    <div class="checkout-footer">
+        <button id="btn-bayar" class="btn btn-primary">💳 Bayar Sekarang via SmartBank</button>
+        <div id="payment-result"></div>
+    </div>
+</div>
+
+<script>
+    let subtotalBarang = parseInt(document.getElementById('subtotal-input').value) || 30000;
+    let ongkir = 0;
+    let feeBank = subtotalBarang * 0.01; 
+    let feeGateway = subtotalBarang * 0.005; 
+    let pajakSistem = subtotalBarang * 0.02; 
+
+    function updateTotal() {
+        subtotalBarang = parseInt(document.getElementById('subtotal-input').value) || 0;
+        feeBank = subtotalBarang * 0.01;
+        feeGateway = subtotalBarang * 0.005;
+        pajakSistem = subtotalBarang * 0.02;
+
+        let total = subtotalBarang + ongkir + feeBank + feeGateway + pajakSistem;
+        
+        document.getElementById('display-subtotal').innerText = `Rp ${subtotalBarang.toLocaleString('id-ID')}`;
+        document.getElementById('display-ongkir').innerText = `Rp ${ongkir.toLocaleString('id-ID')}`;
+        document.getElementById('display-pajak').innerText = `Rp ${pajakSistem.toLocaleString('id-ID')}`;
+        document.getElementById('display-bank').innerText = `Rp ${feeBank.toLocaleString('id-ID')}`;
+        document.getElementById('display-gateway').innerText = `Rp ${feeGateway.toLocaleString('id-ID')}`;
+        document.getElementById('total-bayar').innerText = `Rp ${total.toLocaleString('id-ID')}`;
+    }
+
+    document.getElementById('subtotal-input').addEventListener('input', function() {
+        ongkir = 0;
+        let select = document.getElementById('kurir-select');
+        select.innerHTML = '<option value="">-- Menunggu Data API --</option>';
+        select.disabled = true;
+        
+        document.getElementById('btn-cek-ongkir').style.display = 'block';
+        document.getElementById('logistik-result').style.display = 'none';
+        updateTotal();
+    });
+
+    updateTotal();
+
+    // API Call - LogistikKita
+    document.getElementById('btn-cek-ongkir').addEventListener('click', async function() {
+        this.innerHTML = "⏳ Mengambil data...";
+        
+        try {
+            const response = await fetch(`../logistik/LogistikKitaApi.php?action=rates&amount=${subtotalBarang}`);
+            const json = await response.json();
+            
+            if (json.status === 'success') {
+                let select = document.getElementById('kurir-select');
+                select.innerHTML = '<option value="">-- Pilih Layanan --</option>';
+                json.data.forEach(service => {
+                    select.innerHTML += `<option value="${service.price}" data-code="${service.service_code}">${service.service_name} - Rp ${service.price.toLocaleString('id-ID')} (${service.estimated_days})</option>`;
+                });
+                select.disabled = false;
+                this.innerHTML = "📍 Perbarui Data Ongkir";
+            } else {
+                alert("Gagal mengambil data ongkir: " + json.message);
+                this.innerHTML = "📍 Coba Lagi";
+            }
+        } catch (error) {
+            alert("Error koneksi ke API LogistikKita");
+            this.innerHTML = "📍 Coba Lagi";
+        }
+    });
+
+    // Update ongkir selection
+    document.getElementById('kurir-select').addEventListener('change', function() {
+        ongkir = parseInt(this.value) || 0;
+        updateTotal();
+        
+        let resultDiv = document.getElementById('logistik-result');
+        if (ongkir > 0) {
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `Layanan kurir dipilih. Biaya: <strong>Rp ${ongkir.toLocaleString('id-ID')}</strong>`;
+        } else {
+            resultDiv.style.display = 'none';
+        }
+    });
+
+    // API Call - SmartBank & Logistik Shipment
+    document.getElementById('btn-bayar').addEventListener('click', async function() {
+        if(ongkir === 0) {
+            alert("Silakan cek tarif dan pilih ongkos kirim terlebih dahulu dari LogistikKita!");
+            return;
+        }
+
+        this.innerHTML = "⏳ Memproses Transaksi...";
+        this.disabled = true;
+        
+        let total = subtotalBarang + ongkir + feeBank + feeGateway + pajakSistem;
+        let formData = new FormData();
+        formData.append('account_number', '1234567890'); // Akun dummy 
+        formData.append('order_id', 'ORDER-' + Date.now());
+        formData.append('amount', subtotalBarang + ongkir); 
+        
+        try {
+            // 1. Bayar via SmartBank
+            const response = await fetch(`../smartbank/SmartBankApi.php?action=pay`, {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+            
+            let resultDiv = document.getElementById('payment-result');
+            resultDiv.style.display = 'block';
+            resultDiv.className = ''; 
+            
+            if (result.status === 'success') {
+                // 2. Buat Resi Pengiriman di LogistikKita
+                let select = document.getElementById('kurir-select');
+                let serviceCode = select.options[select.selectedIndex].getAttribute('data-code');
+                
+                let shipData = new FormData();
+                shipData.append('order_id', formData.get('order_id'));
+                shipData.append('service_type', serviceCode);
+                shipData.append('shipping_cost', ongkir);
+                
+                const shipRes = await fetch(`../logistik/LogistikKitaApi.php?action=create`, {
+                    method: 'POST',
+                    body: shipData
+                });
+                const shipResult = await shipRes.json();
+                
+                resultDiv.classList.add('badge-success');
+                
+                let resiMsg = shipResult.status === 'success' ? 
+                    `<br>📦 Nomor Resi Anda: <strong>${shipResult.resi}</strong>` : 
+                    `<br>⚠️ Gagal membuat resi: ${shipResult.message}`;
+                
+                resultDiv.innerHTML = `<strong>✅ Pembayaran Berhasil!</strong><br>${result.message}<br>🆔 Transaksi ID: ${result.transaction_id} ${resiMsg}`;
+            } else {
+                resultDiv.classList.add('badge-error');
+                resultDiv.innerHTML = `<strong>❌ Pembayaran Gagal!</strong><br>${result.message}`;
+            }
+        } catch (error) {
+            let resultDiv = document.getElementById('payment-result');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'badge-error';
+            resultDiv.innerHTML = `<strong>⚠️ Error Koneksi!</strong><br>Gagal terhubung ke API SmartBank.`;
+        } finally {
+            this.innerHTML = "💳 Bayar Sekarang via SmartBank";
+            this.disabled = false;
+        }
+    });
+</script>
+
+</body>
+</html>
