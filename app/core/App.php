@@ -9,6 +9,17 @@ class App {
     protected $params = [];
 
     public function __construct() {
+        // Trigger background processes on every request for the demo
+        if (file_exists('../app/models/Order_model.php')) {
+            require_once '../app/models/Order_model.php';
+            if (class_exists('Order_model')) {
+                $orderModel = new Order_model();
+                if (method_exists($orderModel, 'processAutoUpdates')) {
+                    $orderModel->processAutoUpdates();
+                }
+            }
+        }
+
         $url = $this->getUrl();
 
         // Check if controller exists

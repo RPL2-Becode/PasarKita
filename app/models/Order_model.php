@@ -15,6 +15,71 @@ class Order_model {
             $this->db->query("ALTER TABLE orders ADD COLUMN cancellation_reason TEXT DEFAULT NULL");
             $this->db->execute();
         } catch (Exception $e) { }
+
+        // Ensure updated_at exists for tracking auto-complete
+        try {
+            $this->db->query("ALTER TABLE orders ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+            $this->db->execute();
+        } catch (Exception $e) { }
+    }
+
+    // Auto-update orders (Cancel if unconfirmed for 2 days, Complete if delivered for 2 days)
+    public function processAutoUpdates() {
+        // 1. Auto Cancel (Status 'Menunggu Konfirmasi' > 2 days)
+        try {
+            $cancel_query = "UPDATE orders SET status = 'Dibatalkan', cancellation_reason = 'Dibatalkan Otomatis: Pesanan tidak dikonfirmasi penjual melewati 2 hari.' WHERE status = 'Menunggu Konfirmasi' AND created_at <= DATE_SUB(NOW(), INTERVAL 2 DAY)";
+            $this->db->query($cancel_query);
+            $this->db->execute();
+        } catch (Exception $e) { }
+
+        // 2. Auto Complete (Status 'Dikirim' > 2 days)
+        try {
+            $this->db->query("SELECT id, buyer_id FROM orders WHERE status = 'Dikirim' AND updated_at <= DATE_SUB(NOW(), INTERVAL 2 DAY)");
+            $ordersToComplete = $this->db->resultSet();
+
+            if (!empty($ordersToComplete)) {
+                if (!class_exists('User_model')) {
+                    require_once '../app/models/User_model.php';
+                }
+                if (!class_exists('Chat_model')) {
+                    require_once '../app/models/Chat_model.php';
+                }
+
+                $userModel = new User_model();
+                $chatModel = new Chat_model();
+
+                foreach ($ordersToComplete as $order) {
+                    // Update status
+                    if ($this->updateStatus($order->id, 'Selesai')) {
+                        // Distribute funds and send chat
+                        $items = $this->getOrderItems($order->id);
+                        if (!empty($items)) {
+                            $seller_id = $items[0]->seller_id;
+                            
+                            // Send chat notification
+                            $chatMsg = "Halo! Pesanan Anda (#" . $order->id . ") telah diselesaikan secara otomatis karena telah melewati batas waktu 2 hari sejak dikirim. Silakan berikan nilai/ulasan untuk produk kami!";
+                            $chatData = [
+                                'sender_id' => $seller_id,
+                                'receiver_id' => $order->buyer_id,
+                                'message' => $chatMsg,
+                                'product_id' => null,
+                                'order_id' => $order->id
+                            ];
+                            $chatModel->sendMessage($chatData);
+
+                            // Distribute fee
+                            foreach ($items as $item) {
+                                if (!empty($item->seller_id)) {
+                                    $item_total = $item->price_at_purchase * $item->quantity;
+                                    $seller_revenue = $item_total - ($item_total * 0.02); // 2% marketplace fee
+                                    $userModel->addBalance($item->seller_id, $seller_revenue);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception $e) { }
     }
 
     // Create Order
