@@ -186,15 +186,6 @@ class Products extends Controller {
 
     // List incoming orders containing products owned by the logged-in pelapak
     public function orders() {
-        // Self-healing database check: Alter table to add 'Diserahkan ke Kurir' if not already done
-        try {
-            $db = new Database();
-            $db->query("ALTER TABLE orders MODIFY COLUMN status ENUM('Menunggu Pembayaran', 'Menunggu Konfirmasi', 'Sedang Dikemas', 'Diserahkan ke Kurir', 'Dikirim', 'Selesai', 'Dibatalkan', 'Pengajuan Pembatalan') DEFAULT 'Menunggu Pembayaran'");
-            $db->execute();
-        } catch (Exception $e) {
-            // Silence if already exists or fails
-        }
-
         $orderModel = $this->model('Order_model');
         $userModel = $this->model('User_model');
         
@@ -264,22 +255,8 @@ class Products extends Controller {
                     // Automated chat update
                     $order = $orderModel->getOrderById($order_id);
                     if ($order) {
-                        $chatModel = $this->model('Chat_model');
-                        $chatMsg = "Halo! Status pesanan Anda (#" . $order_id . ") telah diperbarui menjadi: " . $new_status . ".";
-                        if ($new_status == 'Sedang Dikemas') {
-                            $chatMsg .= " Pesanan Anda telah kami konfirmasi dan sedang dalam proses pengemasan. Terima kasih telah berbelanja!";
-                        } elseif ($new_status == 'Diserahkan ke Kurir') {
-                            $chatMsg .= " Pesanan Anda telah diserahkan kepada pihak logistik dan menunggu proses pengiriman.";
-                        }
-                        
-                        $chatData = [
-                            'sender_id' => $_SESSION['user_id'],
-                            'receiver_id' => $order->buyer_id,
-                            'message' => $chatMsg,
-                            'product_id' => null,
-                            'order_id' => $order_id
-                        ];
-                        $chatModel->sendMessage($chatData);
+                        $notificationService = $this->service('OrderNotificationService');
+                        $notificationService->notifyStatusChange($order, $_SESSION['user_id'], $new_status);
                     }
                 } else {
                     flash('order_message', 'Gagal memperbarui status pesanan.', 'bg-red-100 text-red-700 border-red-400 border');

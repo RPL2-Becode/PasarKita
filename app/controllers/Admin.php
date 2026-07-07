@@ -105,17 +105,8 @@ class Admin extends Controller {
                     $order = $this->orderModel->getOrderById($order_id);
                     $items = $this->orderModel->getOrderItems($order_id);
                     if ($order && !empty($items) && !in_array($new_status, ['Dibatalkan', 'Dikembalikan'])) {
-                        $chatModel = $this->model('Chat_model');
-                        $seller_id = $items[0]->seller_id;
-                        $chatMsg = "Halo! Status pesanan Anda (#" . $order_id . ") telah diperbarui oleh sistem menjadi: " . $new_status . ".";
-                        $chatData = [
-                            'sender_id' => $seller_id,
-                            'receiver_id' => $order->buyer_id,
-                            'message' => $chatMsg,
-                            'product_id' => null,
-                            'order_id' => $order_id
-                        ];
-                        $chatModel->sendMessage($chatData);
+                        $notificationService = $this->service('OrderNotificationService');
+                        $notificationService->notifyStatusChange($order, $items[0]->seller_id, $new_status);
                     }
                     
                     flash('order_message', 'Status order ' . $order_id . ' berhasil diperbarui ke "' . $new_status . '"', 'bg-green-100 text-green-700');
@@ -148,17 +139,10 @@ class Admin extends Controller {
                 $order = $this->orderModel->getOrderById($order_id);
                 $items = $this->orderModel->getOrderItems($order_id);
                 if ($order && !empty($items)) {
-                    $chatModel = $this->model('Chat_model');
-                    $seller_id = $items[0]->seller_id;
-                    $chatMsg = "Halo! Pesanan Anda (#" . $order_id . ") telah dikirim menggunakan " . $shipping_service . " dengan nomor resi: " . $resi_number . ". Silakan pantau pengiriman Anda. Terima kasih!";
-                    $chatData = [
-                        'sender_id' => $seller_id,
-                        'receiver_id' => $order->buyer_id,
-                        'message' => $chatMsg,
-                        'product_id' => null,
-                        'order_id' => $order_id
-                    ];
-                    $chatModel->sendMessage($chatData);
+                    $notificationService = $this->service('OrderNotificationService');
+                    // We can reuse notifyStatusChange or create a specific one. Let's send a custom message by just passing it as a "Status Change" format:
+                    $msg = "dikirim menggunakan " . $shipping_service . " dengan nomor resi: " . $resi_number;
+                    $notificationService->notifyStatusChange($order, $items[0]->seller_id, $msg);
                 }
             } else {
                 flash('order_message', 'Nomor resi dan jasa pengiriman tidak boleh kosong!', 'bg-red-100 text-red-700');

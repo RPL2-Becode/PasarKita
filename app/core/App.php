@@ -10,12 +10,12 @@ class App {
 
     public function __construct() {
         // Trigger background processes on every request for the demo
-        if (file_exists('../app/models/Order_model.php')) {
-            require_once '../app/models/Order_model.php';
-            if (class_exists('Order_model')) {
-                $orderModel = new Order_model();
-                if (method_exists($orderModel, 'processAutoUpdates')) {
-                    $orderModel->processAutoUpdates();
+        if (file_exists('../app/services/OrderService.php')) {
+            require_once '../app/services/OrderService.php';
+            if (class_exists('OrderService')) {
+                $orderService = new OrderService();
+                if (method_exists($orderService, 'processAutoUpdates')) {
+                    $orderService->processAutoUpdates();
                 }
             }
         }

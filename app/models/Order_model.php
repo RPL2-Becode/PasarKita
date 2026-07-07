@@ -7,79 +7,24 @@ class Order_model {
 
     public function __construct() {
         $this->db = new Database();
-        
-        // Self-healing: ensure status enum has all values and cancellation_reason exists
-        try {
-            $this->db->query("ALTER TABLE orders MODIFY COLUMN status ENUM('Menunggu Pembayaran', 'Menunggu Konfirmasi', 'Sedang Dikemas', 'Diserahkan ke Kurir', 'Dikirim', 'Selesai', 'Dibatalkan', 'Pengajuan Pembatalan', 'Pengajuan Pengembalian', 'Dikembalikan') DEFAULT 'Menunggu Pembayaran'");
-            $this->db->execute();
-            $this->db->query("ALTER TABLE orders ADD COLUMN cancellation_reason TEXT DEFAULT NULL");
-            $this->db->execute();
-        } catch (Exception $e) { }
+    }
 
-        // Ensure updated_at exists for tracking auto-complete
+    // Auto-update orders (Cancel if unconfirmed for 2 days, Complete if delivered for 2 days)
+    public function processAutoCancel($days) {
         try {
-            $this->db->query("ALTER TABLE orders ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+            $cancel_query = "UPDATE orders SET status = 'Dibatalkan', cancellation_reason = 'Dibatalkan Otomatis: Pesanan tidak dikonfirmasi penjual melewati {$days} hari.' WHERE status = 'Menunggu Konfirmasi' AND created_at <= DATE_SUB(NOW(), INTERVAL {$days} DAY)";
+            $this->db->query($cancel_query);
             $this->db->execute();
         } catch (Exception $e) { }
     }
 
-    // Auto-update orders (Cancel if unconfirmed for 2 days, Complete if delivered for 2 days)
-    public function processAutoUpdates() {
-        // 1. Auto Cancel (Status 'Menunggu Konfirmasi' > 2 days)
+    public function findAutoCompletable($days) {
         try {
-            $cancel_query = "UPDATE orders SET status = 'Dibatalkan', cancellation_reason = 'Dibatalkan Otomatis: Pesanan tidak dikonfirmasi penjual melewati 2 hari.' WHERE status = 'Menunggu Konfirmasi' AND created_at <= DATE_SUB(NOW(), INTERVAL 2 DAY)";
-            $this->db->query($cancel_query);
-            $this->db->execute();
-        } catch (Exception $e) { }
-
-        // 2. Auto Complete (Status 'Dikirim' > 2 days)
-        try {
-            $this->db->query("SELECT id, buyer_id FROM orders WHERE status = 'Dikirim' AND updated_at <= DATE_SUB(NOW(), INTERVAL 2 DAY)");
-            $ordersToComplete = $this->db->resultSet();
-
-            if (!empty($ordersToComplete)) {
-                if (!class_exists('User_model')) {
-                    require_once '../app/models/User_model.php';
-                }
-                if (!class_exists('Chat_model')) {
-                    require_once '../app/models/Chat_model.php';
-                }
-
-                $userModel = new User_model();
-                $chatModel = new Chat_model();
-
-                foreach ($ordersToComplete as $order) {
-                    // Update status
-                    if ($this->updateStatus($order->id, 'Selesai')) {
-                        // Distribute funds and send chat
-                        $items = $this->getOrderItems($order->id);
-                        if (!empty($items)) {
-                            $seller_id = $items[0]->seller_id;
-                            
-                            // Send chat notification
-                            $chatMsg = "Halo! Pesanan Anda (#" . $order->id . ") telah diselesaikan secara otomatis karena telah melewati batas waktu 2 hari sejak dikirim. Silakan berikan nilai/ulasan untuk produk kami!";
-                            $chatData = [
-                                'sender_id' => $seller_id,
-                                'receiver_id' => $order->buyer_id,
-                                'message' => $chatMsg,
-                                'product_id' => null,
-                                'order_id' => $order->id
-                            ];
-                            $chatModel->sendMessage($chatData);
-
-                            // Distribute fee
-                            foreach ($items as $item) {
-                                if (!empty($item->seller_id)) {
-                                    $item_total = $item->price_at_purchase * $item->quantity;
-                                    $seller_revenue = $item_total - ($item_total * 0.02); // 2% marketplace fee
-                                    $userModel->addBalance($item->seller_id, $seller_revenue);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        } catch (Exception $e) { }
+            $this->db->query("SELECT id, buyer_id FROM orders WHERE status = 'Dikirim' AND updated_at <= DATE_SUB(NOW(), INTERVAL {$days} DAY)");
+            return $this->db->resultSet();
+        } catch (Exception $e) { 
+            return [];
+        }
     }
 
     // Create Order

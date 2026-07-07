@@ -18,5 +18,15 @@ class Controller {
             die('View does not exist');
         }
     }
+
+    // Load service
+    public function service($service) {
+        if (file_exists('../app/services/' . $service . '.php')) {
+            require_once '../app/services/' . $service . '.php';
+            return new $service();
+        } else {
+            die('Service does not exist: ' . $service);
+        }
+    }
 }
 ?>

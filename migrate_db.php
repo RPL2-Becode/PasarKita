@@ -45,6 +45,21 @@ try {
         }
     }
 
+    // 3. Modifikasi Tabel 'orders' (Menyesuaikan ENUM status, cancellation_reason, dan updated_at)
+    try {
+        $pdo->exec("ALTER TABLE orders MODIFY COLUMN status ENUM('Menunggu Pembayaran', 'Menunggu Konfirmasi', 'Sedang Dikemas', 'Diserahkan ke Kurir', 'Dikirim', 'Selesai', 'Dibatalkan', 'Pengajuan Pembatalan', 'Pengajuan Pengembalian', 'Dikembalikan') DEFAULT 'Menunggu Pembayaran'");
+        $pdo->exec("ALTER TABLE orders ADD COLUMN cancellation_reason TEXT DEFAULT NULL");
+        $pdo->exec("ALTER TABLE orders ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+        echo "<p style='color:green;'>✅ Berhasil: Kolom status dan cancellation_reason diperbarui untuk siklus pesanan.</p>";
+    } catch (PDOException $e) {
+        if (strpos($e->getMessage(), "Duplicate column name") !== false) {
+            echo "<p style='color:orange;'>⚠️ Info: Kolom cancellation_reason/updated_at sudah ada di tabel 'orders'.</p>";
+        } else {
+            // Abaikan kesalahan syntax jika Enum modification failed atau hal lain yang minor
+            echo "<p style='color:orange;'>⚠️ Info: Penyesuaian ENUM status tabel orders (mungkin sudah sesuai).</p>";
+        }
+    }
+
     echo "<h3>🎉 Migrasi Selesai! Struktur Database telah siap.</h3>";
     echo "<p>Sekarang Anda bisa menghapus file script ini (migrate_db.php) demi keamanan.</p>";
 

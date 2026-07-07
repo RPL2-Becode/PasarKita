@@ -97,45 +97,13 @@ class Pesanan extends Controller {
     // Confirm Order Completed
     public function complete($id) {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $order = $this->orderModel->getOrderById($id);
+            $orderService = $this->service('OrderService');
+            $result = $orderService->completeOrder($id, $_SESSION['user_id']);
             
-            // Check if order belongs to user and is eligible for completion (Dikirim)
-            if ($order && $order->buyer_id == $_SESSION['user_id'] && $order->status == 'Dikirim') {
-                if ($this->orderModel->updateStatus($id, 'Selesai')) {
-                    // Automated chat from seller to buyer
-                    $items = $this->orderModel->getOrderItems($id);
-                    if ($order && !empty($items)) {
-                        $chatModel = $this->model('Chat_model');
-                        $seller_id = $items[0]->seller_id;
-                        $chatMsg = "Halo! Pesanan Anda (#" . $id . ") telah diselesaikan. Terima kasih telah berbelanja di toko kami! Jangan lupa berikan ulasan Anda ya.";
-                        $chatData = [
-                            'sender_id' => $seller_id,
-                            'receiver_id' => $order->buyer_id,
-                            'message' => $chatMsg,
-                            'product_id' => null,
-                            'order_id' => $id
-                        ];
-                        $chatModel->sendMessage($chatData);
-                    }
-
-                    // Distribusi uang ke pelapak
-                    $userModel = $this->model('User_model');
-                    
-                    foreach ($items as $item) {
-                        if (!empty($item->seller_id)) {
-                            $item_total = $item->price_at_purchase * $item->quantity;
-                            // Sesuai aturan: Fee Marketplace 2% dipotong dari penjualan
-                            $seller_revenue = $item_total - ($item_total * 0.02);
-                            $userModel->addBalance($item->seller_id, $seller_revenue);
-                        }
-                    }
-                    
-                    flash('pesanan_message', 'Pesanan telah dikonfirmasi selesai. Dana telah diteruskan ke pelapak (dikurangi fee 2%).', 'bg-green-100 text-green-700 border-green-400 border');
-                } else {
-                    flash('pesanan_message', 'Gagal mengonfirmasi pesanan selesai.', 'bg-red-100 text-red-700 border-red-400 border');
-                }
+            if ($result->success) {
+                flash('pesanan_message', $result->message . ' Dana telah diteruskan ke pelapak.', 'bg-green-100 text-green-700 border-green-400 border');
             } else {
-                flash('pesanan_message', 'Tindakan ini tidak dapat dilakukan.', 'bg-red-100 text-red-700 border-red-400 border');
+                flash('pesanan_message', $result->message, 'bg-red-100 text-red-700 border-red-400 border');
             }
         }
         header('location: /pesanan/detail/' . $id);
